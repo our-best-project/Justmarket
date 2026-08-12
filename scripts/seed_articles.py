@@ -43,12 +43,12 @@ from pathlib import Path
 
 import psycopg
 
-from eventsignal.crawler_legacy.base import (
+from backend.crawler_legacy.base import (
     extract_related_tickers,
     load_stoplist,
     load_ticker_index,
 )
-from eventsignal.db.session import db_url
+from backend.db.session import db_url
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 NEWS = REPO_ROOT / "data" / "cnyes_news_2026.json"

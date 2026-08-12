@@ -112,7 +112,7 @@ def main() -> None:
     if args.apply:
         conn.commit()
         # 合併後廣度變了 → 有 title 的 keeper 重評重要性
-        from eventsignal.scoring.importance import score_and_update_importance
+        from backend.scoring.importance import score_and_update_importance
         n = 0
         for r in conn.execute("select event_id from events where title is not null "
                               "and updated_at > now() - interval '15 minutes'").fetchall():

@@ -31,7 +31,7 @@ jobs:
         run: uv run pytest
 
       - name: Spider Forge 測試
-        run: uv run pytest src/spider_forge/tests -q
+        run: uv run pytest spider_forge/tests -q
 
       - name: Scrapy 契約測試
         run: uv run pytest crawler/tests -q

@@ -11,9 +11,9 @@
 
 ```
 ① 前端 web/            使用者看到的網頁（TypeScript + Vite），GitHub Pages 靜態部署
-② API  src/eventsignal/api/    只讀 FastAPI，Cloud Run
+② API  backend/api/    只讀 FastAPI，Cloud Run
 ③ 儲存 Neon PostgreSQL + pgvector
-④ 處理 src/eventsignal/ 其餘   背景管線，Prefect 排程
+④ 處理 backend/ 其餘   背景管線，Prefect 排程
 ```
 
 方向是單向的：④ 算好寫進 ③，② 只從 ③ 讀，① 只從 ② 讀。
@@ -45,7 +45,7 @@ scoring        重要性 ★1–5、市場驗證 0–100              → scored
 
 代價是每段都要自己維護 status 轉移，漏推進就會累積 —— 2026-08-11 就發生過殼腳本漏掉
 向量化那一步、pending 堆到 3,000+ 而每輪 log 照樣印「管線結束」。修法是把步驟清單收進
-`eventsignal/daily.py` 並用 `tests/test_daily_steps.py` 守住，不再讓它活在殼腳本裡。
+`backend/daily.py` 並用 `tests/test_daily_steps.py` 守住，不再讓它活在殼腳本裡。
 
 ## 兩條旁支
 
@@ -58,15 +58,15 @@ scoring        重要性 ★1–5、市場驗證 0–100              → scored
 ## 模組邊界
 
 切法依「會一起改變的理由」，不依技術類型。詳細對照表在
-[`src/eventsignal/__init__.py`](../src/eventsignal/__init__.py) 的 docstring，那裡離程式碼最近。
+[`backend/__init__.py`](../backend/__init__.py) 的 docstring，那裡離程式碼最近。
 
 三個獨立部署面：
 
 | | 是什麼 | 邊界 |
 |---|---|---|
-| `src/eventsignal/` | 主套件，api 與 worker 兩個映像檔都由它出 | 不 import crawler，只用子程序呼叫 |
+| `backend/` | 主套件，api 與 worker 兩個映像檔都由它出 | 不 import crawler，只用子程序呼叫 |
 | `crawler/` | 正式 Scrapy 專案 | 不被任何人 import；也被 spider_forge 當沙盒容器 |
-| `src/spider_forge/` | AI 爬蟲生成系統 | **不在任何 Prefect flow 內**；不 import `news_crawler`（由 `tests/test_architecture.py` 守著） |
+| `spider_forge/` | AI 爬蟲生成系統 | **不在任何 Prefect flow 內**；不 import `news_crawler`（由 `tests/test_architecture.py` 守著） |
 
 `spider_forge` 是刻意的手動邊界：它產出「spider + 內部 CI 認證」，由人決定要不要搬進
 `crawler/`。自動把生成的程式碼接上正式管線，等於讓模型直接改 production 爬蟲。
@@ -75,7 +75,7 @@ scoring        重要性 ★1–5、市場驗證 0–100              → scored
 
 - **事件而非文章當主體**：使用者的問題是「今天發生什麼」，不是「今天有誰寫了什麼」。
 - **聚類用 Agglomerative(average) 而非 HDBSCAN**：實測 F1 0.914 勝出，且加了日期與 ticker
-  雙閘門擋住「同主題但不同事件」。對照組與數據見 `src/eventsignal/clustering/REPORT.md`。
+  雙閘門擋住「同主題但不同事件」。對照組與數據見 `backend/clustering/REPORT.md`。
 - **重要性與市場驗證分開**：「這件事重要」與「市場買不買單」是兩個問題，混成一個分數就
   再也拆不出理由。兩者都必須能列出計算依據。
 - **只給證據與分數，不給買賣建議**：這是產品邊界，不是技術限制。

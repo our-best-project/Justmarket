@@ -15,7 +15,7 @@ cp .env.example .env    # 填 DATABASE_URL、LLM_API_KEY、FINMIND_TOKEN
 ### 後端：一個入口
 
 ```bash
-uv sync --all-extras && uv run python -m eventsignal --help
+uv sync --all-extras && uv run python -m backend --help
 ```
 
 `--help` 就是完整的操作清單，不需要去別的檔案找指令：
@@ -32,7 +32,7 @@ uv sync --all-extras && uv run python -m eventsignal --help
 只要開 API 給前端用的話，裝輕量那組就好：
 
 ```bash
-uv sync --extra api && uv run python -m eventsignal api
+uv sync --extra api && uv run python -m backend api
 ```
 
 ### 前端
@@ -58,7 +58,7 @@ uv run ruff check .
 cd web && npm run check
 ```
 
-另外兩套測試環境獨立，各自跑：`uv run pytest src/spider_forge/tests`、`uv run pytest crawler/tests`。
+另外兩套測試環境獨立，各自跑：`uv run pytest spider_forge/tests`、`uv run pytest crawler/tests`。
 
 ## 系統長什麼樣
 
@@ -82,14 +82,15 @@ crawler/   驗證＋標    BGE-M3        去重成事件      摘要    ★重�
 
 | 路徑 | 是什麼 |
 |---|---|
-| `src/eventsignal/` | 後端主套件。子模組職責見 [`__init__.py`](src/eventsignal/__init__.py) |
-| `src/spider_forge/` | AI 爬蟲生成系統。獨立執行，**不在任何管線 flow 內** |
+| `backend/` | 後端主套件。子模組職責見 [`__init__.py`](backend/__init__.py) |
+| `spider_forge/` | AI 爬蟲生成系統。獨立執行，**不在任何管線 flow 內** |
 | `crawler/` | 正式 Scrapy 專案。被 `ingestion` 以子程序呼叫，不被 import |
 | `web/` | 前端（TypeScript + Vite + three.js），唯一版本 |
 | `db/` | PostgreSQL DDL 與 migrations |
 | `data/` | 共用語料與 ticker stoplist |
 | `scripts/` | 一次性維運腳本（資料修復、DB 觀測） |
 | `tests/` | 後端整合測試 |
+| `GCP/` | Cloud Run 部署腳本與說明 |
 | `docs/` | [架構](docs/architecture.md)、[API 契約](docs/api.md)、[維運](docs/operations.md)、[關鍵決策](docs/decisions.md) |
 
 依賴只有一份來源：根目錄 `pyproject.toml`，鎖檔 `uv.lock`（另附 PEP 751 的 `pylock.toml`，是匯出產物，可刪除重建）。

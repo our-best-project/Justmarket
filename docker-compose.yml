@@ -119,8 +119,8 @@ services:
     shm_size: 2gb
     volumes:
       - huggingface-cache:/home/justmarket/.cache/huggingface
-      - embedding-artifacts:/opt/justmarket/src/eventsignal/embedding/out
-      - clustering-artifacts:/opt/justmarket/src/eventsignal/clustering/out
+      - embedding-artifacts:/opt/justmarket/backend/embedding/out
+      - clustering-artifacts:/opt/justmarket/backend/clustering/out
     depends_on:
       prefect-server:
         condition: service_healthy

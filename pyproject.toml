@@ -43,7 +43,7 @@ crawler = [
     "playwright==1.61.0",
 ]
 
-# AI 爬蟲生成系統（src/spider_forge/）。不在任何 Prefect flow 內，獨立執行。
+# AI 爬蟲生成系統（spider_forge/）。不在任何 Prefect flow 內，獨立執行。
 spider-forge = [
     "langgraph>=1.2",
     "pyyaml>=6.0",
@@ -67,7 +67,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/eventsignal", "src/spider_forge"]
+packages = ["backend", "spider_forge"]
 
 # ── uv ────────────────────────────────────────────────────────────────────
 # PyTorch 的 CUDA build 不在 PyPI 上，必須從官方 index 取。
@@ -120,7 +120,7 @@ ignore = [
 # ── pytest ────────────────────────────────────────────────────────────────
 [tool.pytest.ini_options]
 # 預設只跑後端整合測試。另外兩套各自獨立、需要各自的環境：
-#   pytest src/spider_forge/tests      # AI 爬蟲生成系統（需 spider-forge extra）
+#   pytest spider_forge/tests      # AI 爬蟲生成系統（需 spider-forge extra）
 #   pytest crawler/tests               # Scrapy 契約測試（需 crawler extra）
 testpaths = ["tests"]
 addopts = "-q --strict-markers"

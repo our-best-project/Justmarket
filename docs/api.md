@@ -3,7 +3,7 @@
 只讀 API，全部是 `GET`。base URL `/api/v1`。互動式文件在 `/docs`（FastAPI 自動產生，
 以實作為準；本檔說的是「為什麼有這些端點」）。
 
-啟動：`uv run python -m eventsignal api`
+啟動：`uv run python -m backend api`
 
 ## 端點
 

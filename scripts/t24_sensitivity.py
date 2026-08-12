@@ -17,9 +17,9 @@ from datetime import date
 
 import psycopg
 
-from eventsignal.scoring import importance as imp
-from eventsignal.scoring import market_validation as mv
-from eventsignal.scoring.market_validation import ChipRow, score_event
+from backend.scoring import importance as imp
+from backend.scoring import market_validation as mv
+from backend.scoring.market_validation import ChipRow, score_event
 
 DB_URL = os.environ["DATABASE_URL"]  # 執行前先把 .env 的 DATABASE_URL 匯入環境變數
 D0 = date.fromisoformat("2026-06-24")

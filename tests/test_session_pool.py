@@ -5,7 +5,7 @@ from contextlib import contextmanager
 
 import pytest
 
-from eventsignal.db import session as db_session
+from backend.db import session as db_session
 
 
 class FakePool:

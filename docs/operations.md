@@ -3,7 +3,7 @@
 ## 一個入口
 
 ```bash
-uv run python -m eventsignal --help
+uv run python -m backend --help
 ```
 
 值得跑第二次的操作都有名字，`--help` 就是完整清單。以前這些指令散落在 README、殼腳本
@@ -12,7 +12,7 @@ uv run python -m eventsignal --help
 ## 每日一輪
 
 ```bash
-uv run python -m eventsignal daily
+uv run python -m backend daily
 ```
 
 七個步驟，每步一個子程序：爬蟲 → 向量化 → 分群 → 籌碼 → 大盤指數 → 篩選/LLM/評分 → 健康記分板。
@@ -21,16 +21,16 @@ uv run python -m eventsignal daily
 只看要跑哪些步驟、不執行：
 
 ```bash
-uv run python -m eventsignal daily --list
+uv run python -m backend daily --list
 ```
 
-步驟清單是程式碼（`src/eventsignal/daily.py` 的 `STEPS`），由 `tests/test_daily_steps.py`
+步驟清單是程式碼（`backend/daily.py` 的 `STEPS`），由 `tests/test_daily_steps.py`
 斷言完整性與順序。少一步，CI 先紅。
 
 補跑某幾段：
 
 ```bash
-uv run python -m eventsignal pipeline --stages llm,scoring
+uv run python -m backend pipeline --stages llm,scoring
 ```
 
 ## 排程（Prefect）
@@ -46,7 +46,7 @@ uv run python -m eventsignal pipeline --stages llm,scoring
 掛上排程並常駐：
 
 ```bash
-uv run python -m eventsignal serve-flows
+uv run python -m backend serve-flows
 ```
 
 FinMind 盤後資料偶爾延遲。批次是冪等的，所以「沒有新日期就結束」是安全的行為，
@@ -90,6 +90,19 @@ docker compose --profile manual run --rm spider-forge run --url "https://example
 uv export --format pylock.toml --all-extras -o pylock.toml
 ```
 
+## API 部署（Cloud Run）
+
+腳本與完整說明在 [`GCP/README.md`](../GCP/README.md)（Nash 建的，維持原本的檔名與用法）：
+
+```powershell
+.\deploy.ps1 -ProjectId eventsignal-nash-2026 -WhatIfOnly
+```
+
+流程是「讀 `.env` 取 `DATABASE_URL` → Cloud Build 建 api stage → 部署 Cloud Run → 打 `/health` 驗證」。
+build context 是 repo 根目錄，`.gcloudignore` 控制上傳範圍（也負責擋掉 `.env`）。
+
+⚠️ 只部署 **API**。Prefect 排程、爬蟲、embedding、LLM、評分都還在本機／GCE 跑。
+
 ## 前端部署（GitHub Pages）
 
 `.github/workflows/pages.yml` 在 push 到 main 時建置 `web/` 並發佈。
@@ -111,7 +124,7 @@ uv export --format pylock.toml --all-extras -o pylock.toml
 兩個終端機：
 
 ```bash
-uv run python -m eventsignal api
+uv run python -m backend api
 ```
 
 ```bash
@@ -130,7 +143,7 @@ content-type 是 text/html），前端會誤判成資料格式錯，極難察覺
 |---|---|
 | API 起不來 | `DATABASE_URL` 有沒有設。連線池在啟動就開，設定錯會立刻失敗而不是等第一個請求 |
 | `/health` 回 503 | 服務活著但 Neon 連不上 |
-| 事件不更新、pending 一直漲 | `uv run python -m eventsignal health`，看是哪一段沒推進 status |
+| 事件不更新、pending 一直漲 | `uv run python -m backend health`，看是哪一段沒推進 status |
 | 「今日事件」在半夜查錯日 | 連線的 timezone 設定（見 [`api.md`](api.md)） |
 | 前端整頁錯誤 | 那是預期行為：取不到資料就報錯，不退回假資料。先確認 API 與 CORS |
 

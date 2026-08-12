@@ -1,0 +1,55 @@
+# Cloud Build 上傳範圍控制。
+#
+# ⚠️ 這個檔案存在時，gcloud 就「不再」回頭去讀 .gitignore。
+#    所以 .gitignore 擋掉的東西（.env、.venv…）必須在這裡重列一次。
+#
+# 目的：repo 全量約 31MB，其中大半是 API 完全用不到的前端與資料集。
+#      build context 越小，gcloud builds submit 上傳越快、Cloud Build 越省時間。
+
+# ── 機密：絕對不能上傳 ──────────────────────────────
+# .env 會被打包送進 Cloud Storage 的 staging bucket，即使 Dockerfile 沒 COPY 它。
+.env
+.env.*
+!.env.example
+
+# ── 版控與虛擬環境 ────────────────────────────────
+.git
+.gitignore
+.venv
+venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/node_modules
+
+# ── 個人 agent 設定，不上雲 ─────────────────────────
+.claude/
+.agents/
+LICENSES/
+AGENTS.md
+CLAUDE.md
+
+# ── API target 用不到的目錄 ──────────────────────────
+web/
+db/
+runtime/
+tests/
+scripts/
+crawler/out/
+backend/embedding/out/
+backend/embedding/out_subset/
+backend/clustering/out/
+
+# data/ 有 13MB，API 一律用不到；
+# 但 worker target 會 COPY data/ticker_stoplist.json，先留一條活路。
+#
+# ⚠️ 寫 `data/*` 不能寫 `data/` — gitignore 語意下，被排除的「目錄」不會再往下走，
+#    後面的 !negation 會失效。排除「目錄內容」才救得回單一檔案。
+data/*
+!data/ticker_stoplist.json
+
+# ── 文件 ────────────────────────────────────────
+*.md
+!backend/**/*.md

@@ -50,12 +50,12 @@ fi
 # 順序不可調換：爬蟲產出 pending → 向量化轉 vectorized → 分群轉 clustered
 # → LLM 轉 summarized → 評分轉 scored。每段只處理上一段的產出。
 
-# ── 全部步驟由 eventsignal/daily.py 調度（版控內、有守護測試） ─────────
+# ── 全部步驟由 backend/daily.py 調度（版控內、有守護測試） ─────────
 # ⚠️ 不要在這裡加步驟。這支殼腳本曾漏掉向量化步驟導致 ②③ 每輪空轉
-# （2026-08-11 事故）——步驟清單活在 eventsignal/daily.py 的 STEPS，
+# （2026-08-11 事故）——步驟清單活在 backend/daily.py 的 STEPS，
 # tests/test_daily_steps.py 斷言其完整性；殼腳本只負責環境與開關機。
-$PY -u -m eventsignal daily >> "$LOG" 2>&1
-echo "── eventsignal daily 全步驟完成 $(date '+%T')" >> "$LOG"
+$PY -u -m backend daily >> "$LOG" 2>&1
+echo "── backend daily 全步驟完成 $(date '+%T')" >> "$LOG"
 
 $PY - >> "$LOG" 2>&1 <<'STATS'
 import os, psycopg

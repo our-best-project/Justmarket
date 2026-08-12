@@ -28,7 +28,7 @@ import pathlib
 
 import psycopg
 
-from eventsignal.llm.summarize import _ticker_mentioned
+from backend.llm.summarize import _ticker_mentioned
 
 
 def _db_url() -> str:
@@ -98,7 +98,7 @@ def main() -> None:
     if args.apply:
         conn.commit()
         # 代號數變了 → 影響範圍維度變 → 重評重要性（星等可能升降）
-        from eventsignal.scoring.importance import score_and_update_importance
+        from backend.scoring.importance import score_and_update_importance
         conn2 = psycopg.connect(_db_url(), connect_timeout=30)
         rescored = 0
         for eid, _, _ in events:

@@ -3,7 +3,7 @@
 獨立的 Scrapy 專案。它只接受 spider 名稱與 runtime 設定，輸出 JSON feed；
 **不 import Spider Forge、不 import 模型、不直接寫 Neon**。
 
-寫入資料庫是 `src/eventsignal/ingestion.py` 的事：它以子程序執行這裡的 spider，
+寫入資料庫是 `backend/ingestion.py` 的事：它以子程序執行這裡的 spider，
 驗證輸出契約、標 `related_tickers`、冪等寫入 `articles`。這條邊界讓「抓得到」與
 「存得對」可以分開驗證，也讓爬蟲容器可以完全不持有資料庫憑證。
 
@@ -20,7 +20,7 @@ cd crawler && uv run python -m scrapy list
 正式路徑不直接呼叫 scrapy，走 ingestion：
 
 ```bash
-uv run python -m eventsignal ingest --all
+uv run python -m backend ingest --all
 ```
 
 只有 `APPROVED_CRAWLERS` 裡的 spider 會被執行 —— 名單寫在 `ingestion.py`，

@@ -2,7 +2,7 @@
 
 import pytest
 
-from eventsignal.core.cache import TTLCache
+from backend.core.cache import TTLCache
 
 
 class FakeClock:

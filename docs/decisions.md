@@ -26,7 +26,7 @@ HDBSCAN 留作對照組。
 （例如兩週前後的兩次法說會），雙閘門擋的就是這個。
 
 **什麼會推翻它**　語料規模或來源結構改變（例如加入大量國際新聞）後重跑黃金集，
-F1 掉到對照組以下。評測方法與數據見 `src/eventsignal/clustering/REPORT.md`。
+F1 掉到對照組以下。評測方法與數據見 `backend/clustering/REPORT.md`。
 
 ---
 
@@ -84,7 +84,7 @@ F1 掉到對照組以下。評測方法與數據見 `src/eventsignal/clustering/
 
 **決定**　AI 生成的爬蟲產出「spider + 內部 CI 認證」，由人決定要不要搬進 `crawler/`。
 `spider_forge` 不在任何 Prefect flow 內，也不 import `news_crawler`
-（由 `src/spider_forge/tests/test_architecture.py` 守著）。
+（由 `spider_forge/tests/test_architecture.py` 守著）。
 
 **為什麼**　自動接上等於讓模型直接改 production 爬蟲。生成品質再高，錯誤模式也是
 「看起來對但抓錯欄位」這種安靜的錯 —— 那會污染 articles，而下游全部吃它。
@@ -122,7 +122,7 @@ F1 掉到對照組以下。評測方法與數據見 `src/eventsignal/clustering/
 
 ## 10. 目錄重構不改行為
 
-**決定**　2026-08 把 `workspace/backend/app/<人名>` 的結構攤平成 `src/eventsignal/<職責>`，
+**決定**　2026-08 把 `workspace/backend/app/<人名>` 的結構攤平成 `backend/<職責>`，
 過程中只改檔案位置、import 路徑與註解，不改任何執行語意。
 
 **為什麼**　重構與行為修改混在同一次變更裡，出事時分不清是哪一邊造成的。

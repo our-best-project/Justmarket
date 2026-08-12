@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from eventsignal.api import demo, market
+from backend.api import demo, market
 
 
 @pytest.fixture(autouse=True)

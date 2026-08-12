@@ -1,6 +1,6 @@
 """crawler ingestion 的純函式契約測試。"""
 
-from eventsignal.ingestion import (
+from backend.ingestion import (
     APPROVED_CRAWLERS,
     SPIDER_ALIASES,
     _resolve_spider,

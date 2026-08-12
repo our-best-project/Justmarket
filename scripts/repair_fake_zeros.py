@@ -1,4 +1,4 @@
-"""假零值深度救援 CLI——邏輯在 eventsignal/finmind/repair.py（每日批次共用同一套）。
+"""假零值深度救援 CLI——邏輯在 backend/finmind/repair.py（每日批次共用同一套）。
 
   python scripts/repair_fake_zeros.py            # dry-run：只掃描
   python scripts/repair_fake_zeros.py --apply    # 重抓仲裁並修復
@@ -9,9 +9,9 @@
 """
 import argparse
 
-from eventsignal.core import config
-from eventsignal.finmind.client import FinMindClient
-from eventsignal.finmind.repair import arbitrate, scan_zero_rows
+from backend.core import config
+from backend.finmind.client import FinMindClient
+from backend.finmind.repair import arbitrate, scan_zero_rows
 
 
 def main() -> None:

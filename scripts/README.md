@@ -1,7 +1,7 @@
 # scripts — 一次性維運腳本
 
 手動觸發的工具。**不進 Docker 映像檔、不進 Prefect 排程** —— 排程要跑的東西一律
-收在 `python -m eventsignal <子命令>` 底下。
+收在 `python -m backend <子命令>` 底下。
 
 都要在裝好套件的環境執行：
 

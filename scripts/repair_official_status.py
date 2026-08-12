@@ -22,7 +22,7 @@ import pathlib
 
 import psycopg
 
-from eventsignal.llm.summarize import enforce_official_guard
+from backend.llm.summarize import enforce_official_guard
 
 
 def _db_url() -> str:
@@ -75,7 +75,7 @@ def main() -> None:
     conn.commit()
 
     # status 是權威維度的輸入 → 重評星等
-    from eventsignal.scoring.importance import score_and_update_importance
+    from backend.scoring.importance import score_and_update_importance
     n = 0
     for eid, _, _ in demoted:
         score_and_update_importance(conn, eid)

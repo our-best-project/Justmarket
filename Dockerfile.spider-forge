@@ -29,9 +29,10 @@ RUN uv sync --frozen --no-dev --no-install-project --extra spider-forge \
     && python -m playwright install --with-deps chromium \
     && mkdir -p /data/spider_forge /ms-playwright
 
-# 整個 src/ 一起複製：wheel metadata 涵蓋 eventsignal 與 spider_forge 兩個套件，
-# 少一個 hatch 就建不起來。spider_forge 不會 import eventsignal，只是同一份 metadata。
-COPY src ./src
+# 兩個套件都要複製：wheel metadata 同時涵蓋 backend 與 spider_forge，
+# 少一個 hatch 就建不起來。spider_forge 不會 import backend，只是同一份 metadata。
+COPY backend ./backend
+COPY spider_forge ./spider_forge
 RUN uv sync --frozen --no-dev --extra spider-forge
 
 ENTRYPOINT ["python", "-m", "spider_forge"]

@@ -38,9 +38,9 @@ dist/
 build/
 *.egg-info/
 
-# 管線產物（可由 python -m eventsignal pipeline 重建）
-src/eventsignal/clustering/out/
-src/eventsignal/embedding/out_subset/
+# 管線產物（可由 python -m backend pipeline 重建）
+backend/clustering/out/
+backend/embedding/out_subset/
 # 註：embedding/out/ 刻意納入版控——embeddings.npy 重算需 CPU 40 分鐘，
 # 提交後協作者 clone 即可直接跑聚類。
 

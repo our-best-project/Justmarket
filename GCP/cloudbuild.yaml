@@ -1,0 +1,40 @@
+# Cloud Build：只建根目錄 Dockerfile 的 api stage。
+#
+# 【為什麼不用 gcloud run deploy --source】
+# Dockerfile 是多階段的（api / worker 兩個 target）。--source 模式
+# 沒有辦法傳 --target，Cloud Build 會建到「最後一個 stage」＝ worker，
+# 那是 prefecthq/prefect 基底、裝了整包 ML 依賴的映像檔，好幾 GB，
+# 而且 CMD 是 prefect serve 而非 uvicorn — 部到 Cloud Run 上根本起不來。
+# 所以這裡明確指定 --target=api。
+#
+# 【build context】必須是 repo 根目錄。
+# Dockerfile 內是 `COPY pyproject.toml uv.lock` 這種從根算起的路徑。
+
+substitutions:
+  # 與 Neon 同城（ap-southeast-1）。理由見 README〈區域為什麼選新加坡〉。
+  _REGION: asia-southeast1
+  _REPO: eventsignal
+  _IMAGE: api
+
+steps:
+  - id: build-api-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --target=api
+      - --file=Dockerfile
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$BUILD_ID
+      - --tag=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest
+      - .
+
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:$BUILD_ID
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_IMAGE}:latest
+
+options:
+  # 新專案若沒設 logs bucket，預設的 logging 模式會噴
+  # "build.service_account required" 之類的錯；指定走 Cloud Logging 最省事。
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8
+
+timeout: 1200s

@@ -20,8 +20,8 @@ def _client_or_none():
     try:
         from fastapi.testclient import TestClient
 
-        from eventsignal.db.session import get_conn
-        from eventsignal.main import app
+        from backend.db.session import get_conn
+        from backend.main import app
 
         with get_conn() as conn:
             conn.execute("select 1")
