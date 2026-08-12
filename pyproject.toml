@@ -1,0 +1,126 @@
+[project]
+name = "justmarket"
+version = "0.1.0"
+description = "就市論事 Justmarket：把台股新聞收斂成可驗證的事件（爬蟲→向量化→去重聚類→LLM→評分→只讀 API）"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+
+# 鎖 3.12（不是 3.13）：PyTorch CUDA wheel 以 cp312 覆蓋最完整，
+# 且 prefect 3.8.0 的官方容器基底是 python3.12。
+
+# 三個容器（api / worker / spider-forge）共用的最小集合。
+# 個別容器要的東西放 optional-dependencies，讓映像檔各自只裝自己需要的。
+dependencies = [
+    "psycopg[binary]",  # 全線唯一的 PostgreSQL driver
+    "requests",         # finmind/client.py、llm/client.py、market_index/client.py
+    "tzdata",           # slim 容器與 Windows 沒有系統時區庫時，ZoneInfo("Asia/Taipei") 會炸
+]
+
+[project.optional-dependencies]
+# ② API 層。與 ML／爬蟲套件完全隔離——api 映像檔不該因為 torch 而肥 3 GB。
+api = [
+    "fastapi",
+    "uvicorn[standard]",  # 不被 import 但啟動必需
+    "pydantic",           # schemas/event.py 的回傳模型
+    "psycopg-pool",       # db/session.py 的 API 連線池 get_pooled_conn
+]
+
+# ④ 處理層（Prefect runner）。爬蟲→向量化→聚類→LLM→評分整條線。
+worker = [
+    "prefect==3.8.0",        # orchestration/：三條每日 flow + self-hosted UI。Server 與 runner 必須同版
+    "sqlalchemy",            # llm/summarize.py 寫回 events
+    "torch>=2.12",           # 明寫是為了讓 tool.uv.sources 能把它導向 CUDA index
+    "sentence-transformers", # embedding/bge_m3.py 載 BAAI/bge-m3（1024 維）
+    "numpy",                 # bge_m3.py 向量運算與 npy 快取、clustering/dedup.py
+    "scikit-learn>=1.3",     # dedup.py 的 Agglomerative(average)；下限是為了 HDBSCAN 對照組（1.3 才進 sklearn.cluster）
+    "google-auth",           # llm/client.py 的 Vertex 主路徑；沒裝會默默退回 gcloud CLI
+]
+
+# 正式 Scrapy 執行面（crawler/）。獨立容器，只被 ingestion.py 以子程序呼叫。
+crawler = [
+    "scrapy==2.17.0",
+    "scrapy-playwright==0.0.48",
+    "playwright==1.61.0",
+]
+
+# AI 爬蟲生成系統（src/spider_forge/）。不在任何 Prefect flow 內，獨立執行。
+spider-forge = [
+    "langgraph>=1.2",
+    "pyyaml>=6.0",
+    "numpy>=1.26",
+    "playwright>=1.40",
+    "scrapy>=2.17,<3",
+    "scrapy-playwright>=0.0.48",
+]
+
+[dependency-groups]
+# uv sync 預設會裝 dev group；不想要時加 --no-dev
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "httpx",   # tests/test_smoke.py 的 FastAPI TestClient 依賴
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/eventsignal", "src/spider_forge"]
+
+# ── uv ────────────────────────────────────────────────────────────────────
+# PyTorch 的 CUDA build 不在 PyPI 上，必須從官方 index 取。
+# explicit = true 表示「只有下面 sources 明確指名的套件才會來這個 index」。
+#
+# 為什麼是 cu126（2026-08-01 實測 index 內容）：
+#   cu126 → cp312-win_amd64 最高 torch 2.13.0   ← 選這個
+#   cu128 → 最高 2.11.0 ／ cu129 → 最高 2.9.0 ／ cu130 → 要求較新 driver
+# 要換版本：改下面 url 的 cu126，然後重跑 uv lock。
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.sources]
+# 只有 Windows 本機開發走 CUDA index（RTX 4060 跑 BGE-M3）。
+# Linux 容器維持 PyPI wheel —— 這是目前 worker 映像檔的既有行為，不要因為換 uv 就悄悄改掉。
+torch = [{ index = "pytorch-cu126", marker = "sys_platform == 'win32'" }]
+
+# ── ruff ──────────────────────────────────────────────────────────────────
+[tool.ruff]
+# 120 而非 100：註解與 docstring 是中文，一行講完一件事的自然長度比英文長。
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    # 本專案的字串、註解、docstring 都是中文，全形標點是正確寫法。
+    # allowed-confusables 要逐字列舉，中文標點列不完 —— 這三條在中文 codebase 是純噪音。
+    "RUF001", "RUF002", "RUF003",
+
+    # EXCEPTION: 下列規則暫關 —— 2026-08-12 目錄重構的原則是「行為不能變」，
+    # 而這些規則的修法都會動到執行語意（ClassVar 標註、zip strict、str-Enum 換基底、
+    # 語句拆行改變 traceback 行號）。重構與行為修改分開成兩次變更，是 Small Reversible Changes。
+    # 回收條件: 各規則獨立開一次變更修完後，逐條從這裡刪掉；清空即刪除本段。
+    "RUF012",  # mutable-class-default（36 處，多在 Scrapy spider 與 dataclass 預設值）
+    "B905",    # zip-without-explicit-strict（23 處）
+    "E701",    # multiple-statements-on-one-line-colon（18 處，集中在 scripts/t24_sensitivity.py）
+    "E702",    # multiple-statements-on-one-line-semicolon（10 處，同上）
+    "E402",    # module-import-not-at-top（16 處，皆為刻意的延遲 import 或 stdout 重設）
+    "SIM115",  # open-file-with-context-handler（9 處）
+    "UP042",   # replace-str-enum（5 處，換基底會改變序列化行為）
+    "E501",    # line-too-long（5 處超過 120 的中文表格註解）
+    "SIM105", "SIM108", "SIM102", "SIM222",
+    "B007", "B008", "E731", "E741",
+    "RUF005", "RUF007", "RUF015", "RUF059",
+]
+
+# ── pytest ────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+# 預設只跑後端整合測試。另外兩套各自獨立、需要各自的環境：
+#   pytest src/spider_forge/tests      # AI 爬蟲生成系統（需 spider-forge extra）
+#   pytest crawler/tests               # Scrapy 契約測試（需 crawler extra）
+testpaths = ["tests"]
+addopts = "-q --strict-markers"

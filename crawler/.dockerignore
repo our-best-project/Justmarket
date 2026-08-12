@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+_candidates/
+_legacy_candidates/
+.scrapy/
+*.json

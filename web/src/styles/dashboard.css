@@ -1,0 +1,1282 @@
+/* 今日大局：低耗能戰情指揮桌。背景與圖表皆為靜態繪製。
+   唯一的例外是多空領土戰的 canvas——它有常駐 rAF 迴圈，代價是自覺的，
+   因此補了三道節流：捲出視窗即停、prefers-reduced-motion 只畫一格、可手動關閉。
+   詳見 components/territory-war.ts。 */
+body.is-board {
+  background: #030506;
+}
+
+.is-board .backdrop {
+  background-image:
+    linear-gradient(180deg, rgba(2, 4, 5, .28), rgba(2, 4, 5, .72)),
+    radial-gradient(80% 58% at 48% 3%, rgba(58, 75, 75, .12), transparent 62%),
+    url("../assets/runtime/images/board-bg.webp");
+  background-position: center, center, center;
+  background-size: auto, auto, cover;
+  background-repeat: no-repeat;
+}
+
+.is-board .scene,
+.is-board .glass {
+  display: none;
+}
+
+.is-board .frame::before {
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, .42);
+}
+
+.is-board .site-header {
+  background: rgba(4, 7, 8, .9);
+  border-color: rgba(184, 209, 202, .1);
+}
+
+.is-board .site-footer {
+  display: none;
+}
+
+.board-page {
+  --dash-bg: #050708;
+  --dash-panel: #090d0f;
+  --dash-panel-2: #0d1315;
+  --dash-line: rgba(184, 209, 202, .13);
+  --dash-line-strong: rgba(184, 209, 202, .24);
+  --dash-text: #e8efeb;
+  --dash-mute: #81908b;
+  --dash-red: #f05b4f;
+  --dash-green: #3eaa78;
+  --dash-cyan: #9bc8c0;
+  --dash-amber: #dbad66;
+  position: relative;
+  min-height: 100vh;
+  color: var(--dash-text);
+  background:
+    linear-gradient(rgba(155, 200, 192, .025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(155, 200, 192, .025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  isolation: isolate;
+}
+
+.board-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 30% at 48% 0%, rgba(56, 93, 87, .13), transparent 74%),
+    linear-gradient(180deg, rgba(0, 0, 0, .06), rgba(0, 0, 0, .3));
+}
+
+.board-shell {
+  width: var(--shell);
+  margin: 0 auto;
+  padding: clamp(20px, 4vh, 40px) 0 72px;
+}
+
+/* 標題區：標題與導言同屬左欄（原本導言在右欄且 align-self:end，會浮在半空中、
+   與標題讀起來像兩件無關的事）；右欄改放「資料狀態」，讓讀者一眼知道哪幾塊可信。
+   欄寬給導言較大比例——它是這區真正要讀的內容。 */
+.board-header {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.6fr) minmax(180px, .5fr);
+  align-items: start;
+  gap: 20px 48px;
+  padding: 8px 0 26px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.board-header__title {
+  position: relative;
+}
+
+.board-header__trust {
+  justify-self: end;
+  text-align: right;
+}
+
+.board-trust {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: "DM Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: .06em;
+}
+
+.board-trust li {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.board-trust i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* 能畫出這一頁就代表全部是真資料——取不到會走 startup-error 頁，
+   所以不再需要「模擬」的燈號樣式。 */
+.board-trust .is-real { color: var(--dash-amber); }
+.board-trust .is-real i { box-shadow: 0 0 12px currentColor; }
+
+.board-header h1 {
+  margin-top: 8px;
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(19px, 2vw, 26px);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: .02em;
+}
+
+.dash-kicker {
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.board-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  color: var(--dash-amber);
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  letter-spacing: .08em;
+}
+
+.board-status i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 14px currentColor;
+}
+
+/* 導言＝標題的引文，緊接在 h1 之下。限制在 46 個中文字寬左右，
+   超過這個長度眼睛回行會找不到位置。 */
+.board-header__insight {
+  margin-top: 12px;
+  max-width: 46em;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--dash-mute);
+}
+
+.board-header__metrics {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--dash-line);
+}
+
+.board-header__metrics > span {
+  min-width: 0;
+  padding: 17px 20px 0;
+  border-left: 1px solid var(--dash-line);
+  font-family: "DM Mono", monospace;
+}
+
+.board-header__metrics > span:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+/* ⚠️ 這條原本是四個選擇器共用的規則，其中兩個屬於已刪除的面板。清理時整條被
+   連坐刪掉，標籤失去 display:block，於是「上 / 下跌家數672 / 562」擠成一行。
+   保留給還活著的兩個選擇器。 */
+.board-header__metrics small,
+.metric-strip small {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .04em;
+}
+
+.board-header__metrics b {
+  font-family: "DM Mono", monospace;
+  font-size: clamp(16px, 1.7vw, 23px);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-header__metrics em {
+  margin-left: 9px;
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.dash-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(145deg, rgba(15, 21, 23, .98), rgba(6, 9, 10, .98));
+  box-shadow: 0 24px 70px -54px rgba(123, 179, 167, .55);
+}
+
+.global-pulse { grid-column: span 8; }
+.breadth { grid-column: span 4; }
+.industries { grid-column: span 5; }
+.bubble-map { grid-column: span 7; }
+.territory-war { grid-column: span 12; }   /* 滿寬：戰線是橫向敘事 */
+
+.dash-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-top: 1px solid rgba(255, 255, 255, .025);
+}
+
+.dash-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 18px 13px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.dash-panel__head h2 {
+  margin-top: 4px;
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(18px, 1.7vw, 25px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+.dash-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 16px;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+}
+
+.dash-chip {
+  display: inline-flex;
+  padding: 5px 9px;
+  border: 1px solid var(--dash-line-strong);
+  color: var(--dash-cyan);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .05em;
+  white-space: nowrap;
+}
+
+.dash-chip--warn {
+  border-color: rgba(219, 173, 102, .28);
+  color: var(--dash-amber);
+}
+
+.board-page .up {
+  color: var(--dash-red);
+}
+
+.board-page .down {
+  color: var(--dash-green);
+}
+
+.board-page .flat {
+  color: var(--dash-mute);
+}
+
+/* 全球脈動 */
+.global-pulse__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(245px, .8fr);
+  height: 400px;
+}
+
+.world-stage {
+  position: relative;
+  min-height: 400px;
+  overflow: hidden;
+  border-right: 1px solid var(--dash-line);
+  background:
+    radial-gradient(circle at 52% 51%, rgba(76, 121, 113, .12), transparent 45%),
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent);
+}
+
+.world-stage__halo {
+  position: absolute;
+  width: 72%;
+  aspect-ratio: 1.9;
+  left: 14%;
+  top: 19%;
+  border: 1px solid rgba(155, 200, 192, .13);
+  border-radius: 50%;
+  transform: rotateX(63deg);
+  box-shadow:
+    0 0 80px rgba(94, 155, 143, .08),
+    inset 0 0 45px rgba(94, 155, 143, .05);
+}
+
+.world-map {
+  position: absolute;
+  inset: 10% 3% auto;
+  width: 94%;
+  height: 78%;
+  overflow: visible;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, .8));
+  transform: perspective(900px) rotateX(16deg);
+}
+
+.world-map path {
+  fill: rgba(107, 137, 130, .15);
+  stroke: rgba(155, 200, 192, .24);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.world-stage__latitudes {
+  position: absolute;
+  inset: 15% 8% 18%;
+  opacity: .32;
+  background:
+    repeating-radial-gradient(ellipse at center, transparent 0 46px, rgba(155, 200, 192, .09) 47px 48px);
+  transform: perspective(800px) rotateX(12deg);
+}
+
+.world-node {
+  position: absolute;
+  z-index: 2;
+  left: var(--map-x);
+  top: var(--map-y);
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: var(--dash-bg);
+  color: var(--dash-mute);
+  cursor: pointer;
+}
+
+.world-node--up {
+  color: var(--dash-red);
+}
+
+.world-node--down {
+  color: var(--dash-green);
+}
+
+.world-node__pulse {
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: currentColor;
+  box-shadow: 0 0 18px currentColor;
+}
+
+.world-node__label {
+  position: absolute;
+  left: 15px;
+  top: -11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid transparent;
+  background: rgba(5, 8, 9, .72);
+  color: var(--dash-text);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.world-node__label b {
+  font-weight: 500;
+}
+
+.world-node__label em {
+  color: currentColor;
+  font-style: normal;
+}
+
+.world-node[aria-pressed="true"] {
+  outline: 4px solid rgba(232, 239, 235, .1);
+}
+
+.world-node[aria-pressed="true"] .world-node__label,
+.world-node:hover .world-node__label,
+.world-node:focus-visible .world-node__label {
+  border-color: currentColor;
+  background: rgba(5, 8, 9, .96);
+}
+
+.world-stage__note {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+}
+
+.global-pulse__side {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+}
+
+.market-detail {
+  min-height: 222px;
+  padding: 15px 14px 10px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.market-detail__top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.market-detail__top span,
+.market-detail__asof {
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+}
+
+.market-detail__top h3 {
+  margin-top: 3px;
+  font-family: "Noto Serif TC", serif;
+  font-size: 17px;
+}
+
+.market-detail__top strong {
+  font-family: "DM Mono", monospace;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.market-spark {
+  width: 100%;
+  height: 78px;
+  margin: 7px 0 3px;
+  overflow: visible;
+  color: var(--dash-red);
+}
+
+.market-spark--down {
+  color: var(--dash-green);
+}
+
+.market-spark polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.market-spark__base {
+  fill: none;
+  stroke: var(--dash-line);
+  stroke-dasharray: 3 4;
+}
+
+.market-detail__periods {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding-top: 7px;
+  border-top: 1px solid var(--dash-line);
+}
+
+.market-detail__periods span + span {
+  padding-left: 10px;
+  border-left: 1px solid var(--dash-line);
+}
+
+.market-detail__periods small {
+  display: block;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 8px;
+}
+
+.market-detail__periods b {
+  font-family: "DM Mono", monospace;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.market-detail__asof {
+  margin-top: 7px;
+}
+
+.market-ranking {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: stretch;
+}
+
+.market-rank {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 8px;
+  border: 0;
+  border-bottom: 1px solid var(--dash-line);
+  background: transparent;
+  color: var(--dash-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.market-rank:hover,
+.market-rank[aria-pressed="true"] {
+  background: rgba(155, 200, 192, .055);
+}
+
+.market-rank[aria-pressed="true"] {
+  box-shadow: inset 2px 0 var(--dash-cyan);
+}
+
+.market-rank__n,
+.market-rank small,
+.market-rank em {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.market-rank__n,
+.market-rank small {
+  color: var(--dash-mute);
+}
+
+.market-rank b,
+.market-rank small {
+  display: block;
+}
+
+.market-rank b {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadth__hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  gap: 15px;
+  padding: 18px 16px 13px;
+}
+
+.breadth__index span,
+.breadth__index strong,
+.breadth__index em {
+  display: block;
+  font-family: "DM Mono", monospace;
+}
+
+.breadth__index span {
+  color: var(--dash-mute);
+  font-size: 9px;
+}
+
+.breadth__index strong {
+  font-size: clamp(24px, 2.6vw, 38px);
+  font-weight: 500;
+}
+
+.breadth__index em {
+  margin-top: 2px;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.breadth__hero p {
+  color: #aebbb6;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.breadth__hero p b {
+  color: var(--dash-text);
+}
+
+.breadth-bar {
+  display: flex;
+  height: 20px;
+  margin: 0 16px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: #111;
+}
+
+.breadth-bar span {
+  display: block;
+}
+
+.breadth-bar__up,
+.industry-row__up {
+  background: var(--dash-red);
+}
+
+.breadth-bar__flat,
+.industry-row__flat {
+  background: #66706d;
+}
+
+.breadth-bar__down,
+.industry-row__down {
+  background: var(--dash-green);
+}
+
+.breadth-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 10px 16px 13px;
+  background: var(--dash-line);
+}
+
+.breadth-counts > span {
+  position: relative;
+  padding: 10px;
+  background: var(--dash-panel);
+}
+
+.breadth-counts i {
+  position: absolute;
+  top: 15px;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #66706d;
+}
+
+.breadth-counts i.up {
+  background: var(--dash-red);
+}
+
+.breadth-counts i.down {
+  background: var(--dash-green);
+}
+
+.breadth-counts small,
+.breadth-counts b {
+  display: block;
+  font-family: "DM Mono", monospace;
+}
+
+.breadth-counts small {
+  color: var(--dash-mute);
+  font-size: 9px;
+}
+
+.breadth-counts b {
+  margin-top: 5px;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--dash-line);
+}
+
+.metric-strip > span {
+  min-width: 0;
+  padding: 12px 10px;
+  border-left: 1px solid var(--dash-line);
+}
+
+.metric-strip > span:first-child {
+  border-left: 0;
+}
+
+.metric-strip b {
+  font-family: "DM Mono", monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.industry-legend {
+  display: grid;
+  grid-template-columns: 80px 1fr 68px 56px;
+  gap: 12px;
+  padding: 9px 14px 5px;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 8px;
+  text-align: right;
+}
+
+.industry-legend span:first-child {
+  grid-column: 2;
+  text-align: left;
+}
+
+.industry-row {
+  display: grid;
+  grid-template-columns: 80px minmax(100px, 1fr) 68px 56px;
+  align-items: center;
+  gap: 12px;
+  min-height: 28px;
+  padding: 3px 14px;
+  border-top: 1px solid rgba(184, 209, 202, .07);
+}
+
+.industry-row__name {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.industry-row__bar {
+  display: flex;
+  height: 9px;
+  overflow: hidden;
+  background: #131819;
+}
+
+.industry-row__bar i {
+  display: block;
+}
+
+.industry-row__counts,
+.industry-row em {
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  font-style: normal;
+  text-align: right;
+}
+
+.industry-row__counts {
+  color: #aab7b2;
+}
+
+.industry-row__counts i {
+  margin: 0 4px;
+  color: var(--dash-mute);
+  font-style: normal;
+}
+
+.axis-label {
+  position: absolute;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 8px;
+}
+
+.axis-label--y {
+  top: 13px;
+  left: 15px;
+}
+
+.axis-label--x {
+  right: 14px;
+  bottom: 12px;
+}
+
+.quadrant {
+  position: absolute;
+  color: rgba(184, 209, 202, .22);
+  font-family: "Noto Serif TC", serif;
+  font-size: clamp(14px, 1.5vw, 21px);
+  line-height: 1.45;
+}
+
+.quadrant--tl { left: 20px; top: 48px; }
+.quadrant--tr { right: 20px; top: 48px; }
+.quadrant--bl { left: 20px; bottom: 28px; }
+.quadrant--br { right: 20px; bottom: 28px; }
+
+.sentiment-bar {
+  display: flex;
+  height: 9px;
+  margin-bottom: 24px;
+}
+
+.sentiment-bar i:nth-child(1) { background: var(--dash-red); }
+.sentiment-bar i:nth-child(2) { background: #66706d; }
+.sentiment-bar i:nth-child(3) { background: var(--dash-green); }
+
+.board-data-note {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px 40px;
+  padding: 26px 0 0;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.board-data-note > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.board-data-note b {
+  color: var(--dash-text);
+  font-weight: 500;
+}
+
+.board-data-note span {
+  white-space: nowrap;
+}
+
+.board-data-note em {
+  color: #5f6c68;
+  font-style: normal;
+}
+
+.source-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--dash-mute);
+}
+
+/* 狀態列的三種狀態都要有顏色，否則會落到 .source-dot 的灰色預設看不出差別。
+   （stale／unavailable 由 /market/global 的每指數新鮮度判定產生。） */
+.source-dot--ready {
+  background: var(--dash-cyan);
+  box-shadow: 0 0 8px var(--dash-cyan);
+}
+
+.source-dot--stale {
+  background: var(--dash-amber);
+}
+
+.source-dot--unavailable {
+  background: var(--dash-red);
+}
+
+@media (max-width: 1100px) {
+  .global-pulse,
+  .bubble-map {
+    grid-column: 1 / -1;
+  }
+
+  .breadth { grid-column: span 5; }
+  .industries { grid-column: span 7; }
+}
+
+@media (max-width: 760px) {
+  .board-shell {
+    width: var(--shell);
+  }
+
+  .board-header {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  /* 窄螢幕單欄時，資料狀態改靠左並橫向排列，不要孤零零地靠右 */
+  .board-header__trust {
+    justify-self: start;
+    text-align: left;
+  }
+
+  .board-trust {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+  }
+
+  .board-trust li { justify-content: flex-start; }
+
+  .board-header__insight {
+    font-size: 14px;
+  }
+
+  .board-header__metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .board-header__metrics > span {
+    padding: 14px 12px;
+    border-top: 1px solid var(--dash-line);
+  }
+
+  .board-header__metrics > span:nth-child(odd) {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .dash-panel__head {
+    padding: 18px 16px 14px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .dash-legend {
+    justify-content: flex-start;
+  }
+
+  .dashboard > .dash-panel {
+    grid-column: 1 / -1;
+  }
+
+  .global-pulse__grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .world-stage {
+    min-height: 360px;
+    border-right: 0;
+    border-bottom: 1px solid var(--dash-line);
+  }
+
+  .world-map {
+    inset: 12% -18% auto;
+    width: 136%;
+  }
+
+  .world-node__label {
+    padding: 3px;
+  }
+
+  .world-node__label b {
+    font-size: 8px;
+  }
+
+  .world-node__label em {
+    display: none;
+  }
+
+  .global-pulse__side {
+    display: block;
+  }
+
+  .market-detail {
+    border-right: 0;
+    border-bottom: 1px solid var(--dash-line);
+  }
+
+  .market-ranking {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .market-rank {
+    padding: 10px 12px;
+  }
+
+  .breadth__hero {
+    grid-template-columns: 1fr;
+    padding-inline: 16px;
+  }
+
+  .breadth-bar {
+    margin-inline: 16px;
+  }
+
+  .breadth-counts {
+    margin-inline: 16px;
+  }
+
+  .metric-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric-strip > span:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--dash-line);
+  }
+
+  .metric-strip > span:nth-child(4) {
+    border-top: 1px solid var(--dash-line);
+  }
+
+  .industry-legend {
+    display: none;
+  }
+
+  .industry-list {
+    padding-top: 6px;
+  }
+
+  .industry-row {
+    grid-template-columns: 72px minmax(80px, 1fr) 42px;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .industry-row__counts {
+    display: none;
+  }
+
+  .board-data-note {
+    flex-direction: column;
+  }
+}
+
+/* ── 成交熱度泡泡圖（取代原主題板塊圖）────────────────────────────
+   ⚠️ grid-column 不能省。少了它面板只佔 12 欄中的 1 欄（實測寬 87px），
+   泡泡被擠成一直行、把整列高度撐到 3113px。span 7 與 .industries 的
+   span 5 湊滿 12 欄，兩塊同列、上下緣切齊。 */
+.bubble-map {
+  display: flex;
+  flex-direction: column;
+}
+
+.bubble-map__note {
+  margin: 14px 18px 0;
+  color: var(--dash-mute);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+/* 泡泡以 flex-wrap 靠齊排列，不做圓形緊密堆疊——堆疊演算法要自己實作，
+   且視窗一縮就會重疊到蓋住股名。負 margin 讓相鄰泡泡略為交疊，
+   取得參考圖那種聚集感，又不至於壓到文字。 */
+/* 泡泡改為絕對定位：位置與直徑都由 renderTurnoverBubbles 的環形佈局算好，
+   全部以百分比輸出。舞台鎖 aspect-ratio，整塊等比縮放，任何視窗寬度下
+   泡泡的相對位置與大小都不變，也就不會疊到。 */
+.bubble-map__field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 18px 22px;
+  /* .dash-panel 是 overflow:hidden，面板比舞台矮時會無聲裁掉底部一排。
+     這裡自己收下捲動，寧可捲也不要吃掉資料。 */
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.bubble-map__stage {
+  position: relative;
+  flex: none;
+  width: 100%;
+  aspect-ratio: 100 / 128;      /* 必須與 dashboard.ts 的 STAGE_W / STAGE_H 一致 */
+  /* 字級跟著舞台寬走，窄視窗下泡泡縮小時文字才不會撐爆 */
+  container-type: inline-size;
+}
+
+.bubble {
+  position: absolute;
+  left: var(--bubble-x);
+  top: var(--bubble-y);
+  width: var(--bubble-d);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  box-sizing: border-box;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--dash-text);
+  cursor: pointer;
+  /* 三層疊出玻璃球：左上高光 → 球心亮 → 邊緣濃。單一漸層會像扁平圓餅。 */
+  background:
+    radial-gradient(58% 52% at 30% 24%,
+      rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, .1) 42%, transparent 72%),
+    radial-gradient(circle at 50% 54%,
+      color-mix(in srgb, var(--bubble-hue) 46%, transparent) 0%,
+      color-mix(in srgb, var(--bubble-hue) 20%, transparent) 52%,
+      color-mix(in srgb, var(--bubble-hue) 55%, transparent) 84%,
+      color-mix(in srgb, var(--bubble-hue) 18%, transparent) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .3),                                   /* 薄膜邊 */
+    inset -8px -12px 26px color-mix(in srgb, var(--bubble-hue) 34%, transparent), /* 右下厚度 */
+    inset 10px 14px 30px rgba(255, 255, 255, .1),                              /* 左上透光 */
+    0 10px 26px -8px rgba(0, 0, 0, .55),
+    0 0 22px color-mix(in srgb, var(--bubble-hue) 20%, transparent);           /* 外暈 */
+  transition: scale .2s ease, box-shadow .2s ease;
+}
+
+.bubble--up { --bubble-hue: var(--dash-red); }
+.bubble--down { --bubble-hue: var(--dash-green); }
+.bubble--flat { --bubble-hue: var(--dash-cyan); }
+
+/* 左上角那顆小小的鏡面反光。放 span 而非偽元素，是因為偽元素已被
+   .dash-panel::after 之類的既有規則佔用習慣，分開比較不易誤傷。 */
+.bubble__gloss {
+  position: absolute;
+  top: 13%;
+  left: 17%;
+  width: 26%;
+  height: 19%;
+  border-radius: 50%;
+  transform: rotate(-24deg);
+  background: radial-gradient(circle, rgba(255, 255, 255, .92), rgba(255, 255, 255, .12) 62%, transparent 78%);
+  pointer-events: none;
+}
+
+/* 右下的反射弧，讓球體不只是「有高光的圓」而是有厚度 */
+.bubble::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  border-bottom-color: rgba(255, 255, 255, .22);
+  border-right-color: rgba(255, 255, 255, .12);
+  transform: rotate(12deg);
+  pointer-events: none;
+}
+
+.bubble__text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  padding: 0 12%;
+  /* 泡泡是半透明的，純色字會被底下的漸層吃掉；描邊陰影比加深底色更保質感 */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .55);
+}
+
+/* 交疊時被 hover 的那顆要浮到最上層，否則會被鄰居蓋住一角。
+   ⚠️ 放大只能用 scale 屬性，不能用 transform：泡泡靠 translate:-50% -50% 定位，
+   寫 transform 會把它整顆位移掉。 */
+.bubble:hover,
+.bubble[data-selected] {
+  z-index: 2;
+  scale: 1.07;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .55),
+    inset -8px -12px 26px color-mix(in srgb, var(--bubble-hue) 40%, transparent),
+    inset 10px 14px 30px rgba(255, 255, 255, .16),
+    0 14px 32px -8px rgba(0, 0, 0, .6),
+    0 0 34px color-mix(in srgb, var(--bubble-hue) 42%, transparent);
+}
+
+.bubble:focus-visible {
+  outline: 2px solid var(--dash-amber);
+  outline-offset: 4px;
+  z-index: 2;
+}
+
+/* 字級用 cqw 綁定舞台寬：泡泡是百分比尺寸，字若固定 px，窄視窗下會撐爆圓形。
+   仍加 clamp 兜住兩端——超寬螢幕字太大、手機字太小都不能讀。 */
+.bubble b {
+  font-size: clamp(11px, 2.4cqw, 19px);
+  font-weight: 700;
+  line-height: 1.2;
+  /* 長股名不換行擠爆圓形，改為省略 */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bubble em {
+  font-family: "DM Mono", monospace;
+  font-size: clamp(10px, 2.1cqw, 16px);
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+.bubble small {
+  font-family: "DM Mono", monospace;
+  font-size: clamp(9px, 1.7cqw, 13px);
+  color: rgba(232, 239, 235, .68);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bubble { transition: none; }
+  .bubble:hover, .bubble[data-selected] { scale: 1; }
+}
+
+/* ── 多空領土戰 ────────────────────────────────────────────────
+   取代原本的「消息注意力」與「散戶溫度計」兩塊 mock。整列滿寬（span 12），
+   因為戰線是橫向敘事：擠在半欄裡看不出領土消長。 */
+.war-head__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.war-toggle {
+  padding: 4px 10px;
+  border: 1px solid var(--dash-line-strong);
+  background: transparent;
+  color: var(--dash-mute);
+  font-family: "DM Mono", monospace;
+  font-size: 9px;
+  letter-spacing: .05em;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease;
+}
+
+.war-toggle:hover {
+  color: var(--dash-text);
+  border-color: var(--dash-cyan);
+}
+
+.war-toggle:focus-visible {
+  outline: 2px solid var(--dash-amber);
+  outline-offset: 2px;
+}
+
+.war__note {
+  margin: 14px 18px 4px;
+  color: var(--dash-mute);
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+.war__stage {
+  padding: 4px 12px 14px;
+}
+
+.war__stage canvas {
+  display: block;
+  width: 100%;
+  height: 360px;   /* 必須與 territory-war.ts 的 CANVAS_H 一致 */
+  background:
+    radial-gradient(60% 50% at 50% 58%, rgba(76, 121, 113, .10), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, .012), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-node,
+  .market-rank {
+    transition: none;
+  }
+}
+

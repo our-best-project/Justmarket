@@ -1,0 +1,39 @@
+{
+  "site_url": "https://www.rba.gov.au/media-releases/",
+  "site_name": "澳洲儲備銀行公告",
+  "source_prefix": "rba_media",
+  "target_schema": {
+    "source_type": "official",
+    "content_scope": "full",
+    "fields": {
+      "content": {
+        "type": "string",
+        "required": true,
+        "mode": "full",
+        "max_chars": 20000
+      }
+    }
+  },
+  "validation": {
+    "allowed_domains": [
+      "www.rba.gov.au",
+      "rba.gov.au"
+    ],
+    "article_url_patterns": [
+      "/media-releases/\\d{4}/mr-\\d{2}-\\d{2}\\.html$"
+    ],
+    "excluded_url_patterns": [
+      "/media-releases/?(?:index\\.html)?$"
+    ],
+    "min_content_chars": 40,
+    "max_age_days": 365,
+    "min_valid_items": 5,
+    "min_unique_ratio": 0.8
+  },
+  "constraints": {
+    "source_timezone": "Australia/Sydney"
+  },
+  "topic_gate": {
+    "mode": "off"
+  }
+}

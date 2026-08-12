@@ -1,0 +1,158 @@
+{
+  "產出方式": "scripts/build_ticker_stoplist.py（資料驅動，勿手改）",
+  "語料": "workSpace_beginFromHere/data/samples/anue_scraping/cnyes_news_2026.json",
+  "語料篇數": 5409,
+  "規則": "命中篇數 >= 30 且 代號共現率 < 0.02 → 停用",
+  "門檻": {
+    "MIN_FIRE": 30,
+    "MIN_RATE": 0.02
+  },
+  "停用數": 24,
+  "評估過的名稱數": 134,
+  "停用清單": [
+    {
+      "name": "新產",
+      "ticker": "2850",
+      "fires": 362,
+      "cooccur_rate": 0.011
+    },
+    {
+      "name": "全台",
+      "ticker": "3038",
+      "fires": 291,
+      "cooccur_rate": 0.0034
+    },
+    {
+      "name": "大陸",
+      "ticker": "2526",
+      "fires": 210,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "聯合",
+      "ticker": "4129",
+      "fires": 140,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "卓越",
+      "ticker": "2496",
+      "fires": 133,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "互動",
+      "ticker": "6486",
+      "fires": 112,
+      "cooccur_rate": 0.0089
+    },
+    {
+      "name": "三星",
+      "ticker": "5007",
+      "fires": 106,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "達新",
+      "ticker": "1315",
+      "fires": 103,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "資通",
+      "ticker": "2471",
+      "fires": 102,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "台南",
+      "ticker": "1473",
+      "fires": 101,
+      "cooccur_rate": 0.0198
+    },
+    {
+      "name": "超級",
+      "ticker": "911606",
+      "fires": 100,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "介面",
+      "ticker": "3584",
+      "fires": 98,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "綠能",
+      "ticker": "3519",
+      "fires": 87,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "冠軍",
+      "ticker": "1806",
+      "fires": 83,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "綠電",
+      "ticker": "8440",
+      "fires": 81,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "新建",
+      "ticker": "2516",
+      "fires": 77,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "數字",
+      "ticker": "5287",
+      "fires": 74,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "日月光",
+      "ticker": "2311",
+      "fires": 46,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "全國",
+      "ticker": "9937",
+      "fires": 46,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "中台",
+      "ticker": "6923",
+      "fires": 43,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "合庫",
+      "ticker": "5854",
+      "fires": 39,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "根基",
+      "ticker": "2546",
+      "fires": 36,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "及成",
+      "ticker": "3095",
+      "fires": 36,
+      "cooccur_rate": 0.0
+    },
+    {
+      "name": "幸福",
+      "ticker": "1108",
+      "fires": 30,
+      "cooccur_rate": 0.0
+    }
+  ]
+}

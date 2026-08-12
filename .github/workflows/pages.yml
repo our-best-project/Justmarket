@@ -1,0 +1,61 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      # BASE_PATH：Pages 站台掛在 /<repo>/ 底下，資源路徑必須帶這一段。
+      # VITE_API_BASE：Pages 是靜態站，沒有 proxy —— API 位址必須是絕對網址。
+      #   設定位置：repo Settings → Secrets and variables → Actions → Variables，
+      #   新增 API_BASE，值例如 https://<cloud-run-host>/api/v1。
+      #   還沒設就會退回相對路徑 /api/v1，頁面會顯示「取不到資料」的錯誤頁
+      #   —— 這是刻意的，不以模擬值冒充真實資料。
+      - name: build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_API_BASE: ${{ vars.API_BASE }}
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

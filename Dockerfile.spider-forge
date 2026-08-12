@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1.7
+#
+# AI 爬蟲生成系統的控制面。獨立於 api／worker：它不參與每日管線，
+# 而且要能呼叫 docker 起沙盒容器實跑候選 spider，所以映像檔裡帶 docker CLI。
+# 依賴同樣走根目錄的 uv.lock，不另立 requirements。
+
+ARG UV_VERSION=0.12.1
+
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv-bin
+FROM docker:27.5.1-cli-alpine3.21 AS docker-cli
+
+FROM python:3.12-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONUTF8=1 \
+    PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+    SPIDERFORGE_DATA_DIR=/data/spider_forge \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PATH="/opt/justmarket/.venv/bin:$PATH"
+
+COPY --from=uv-bin /uv /usr/local/bin/uv
+COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
+WORKDIR /opt/justmarket
+
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --no-install-project --extra spider-forge \
+    && python -m playwright install --with-deps chromium \
+    && mkdir -p /data/spider_forge /ms-playwright
+
+# 整個 src/ 一起複製：wheel metadata 涵蓋 eventsignal 與 spider_forge 兩個套件，
+# 少一個 hatch 就建不起來。spider_forge 不會 import eventsignal，只是同一份 metadata。
+COPY src ./src
+RUN uv sync --frozen --no-dev --extra spider-forge
+
+ENTRYPOINT ["python", "-m", "spider_forge"]
+CMD ["run", "--file", "/data/spider_forge/requests/urls.txt"]

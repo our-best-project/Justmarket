@@ -1,0 +1,2 @@
+# 每行一個完整的 http/https URL；空行與 # 註解會忽略。
+# https://example.com/news

@@ -1,0 +1,40 @@
+{
+  "site_url": "https://www.bankofcanada.ca/press/press-releases/",
+  "site_name": "加拿大央行新聞稿",
+  "source_prefix": "boc_press",
+  "target_schema": {
+    "source_type": "official",
+    "content_scope": "full",
+    "fields": {
+      "content": {
+        "type": "string",
+        "required": true,
+        "mode": "full",
+        "max_chars": 20000
+      }
+    }
+  },
+  "validation": {
+    "allowed_domains": [
+      "www.bankofcanada.ca",
+      "bankofcanada.ca"
+    ],
+    "article_url_patterns": [
+      "/20\\d{2}/\\d{2}/[a-z0-9][a-z0-9-]+/?$"
+    ],
+    "excluded_url_patterns": [
+      "/press/press-releases/?$",
+      "/page/\\d+/?$"
+    ],
+    "min_content_chars": 40,
+    "max_age_days": 365,
+    "min_valid_items": 5,
+    "min_unique_ratio": 0.8
+  },
+  "constraints": {
+    "source_timezone": "America/Toronto"
+  },
+  "topic_gate": {
+    "mode": "off"
+  }
+}

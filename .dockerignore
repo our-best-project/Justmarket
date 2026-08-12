@@ -1,0 +1,29 @@
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+.memsearch
+
+# 前端不進任何 Python 映像檔
+web
+
+# 文件、資料資產、維運腳本都不需要進映像檔
+docs
+db
+scripts
+tests
+runtime
+LICENSES
+.agents
+.claude
+
+# 凍結語料 13 MB 且只有離線工具會用；stoplist 是 ingestion 的執行期依賴，留下
+data
+!data/ticker_stoplist.json
+
+.env
+.env.*
+!.env.example

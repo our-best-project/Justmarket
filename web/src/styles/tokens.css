@@ -1,0 +1,41 @@
+:root {
+  /* 視差與場景參數由 scene controller 寫入；以下為無 JS 時的視覺基準。 */
+  --far-x: 0px;
+  --far-y: 0px;
+  --near-x: 0px;
+  --near-y: 0px;
+  --far-scale: 1.08;
+  --near-scale: 1.14;
+  --scene-position-y: 46%;
+
+  --ink: #e6edf1;
+  --ink-soft: #b3c0c6;
+  --ink-mute: #8b99a0;
+  --ember: #d8794e;
+  --bull: #e8574a;
+  --bear: #3e9b6c;
+  --ember-deep: #b0563180;
+  --panel: rgba(18, 26, 34, 0.52);
+  --panel-2: rgba(24, 33, 42, 0.62);
+  --hair: rgba(200, 216, 228, 0.14);
+  --hair-soft: rgba(200, 216, 228, 0.08);
+  --shell: min(1240px, 92vw);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100%;
+  background: #0a0d13;
+  color: var(--ink);
+  font-family: "Noto Sans TC", "DM Mono", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

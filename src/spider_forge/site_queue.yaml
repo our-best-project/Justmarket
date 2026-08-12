@@ -1,0 +1,66 @@
+# spider_forge 要接的新聞站清單（docs/spec/08 §5）。
+# 一站一個 graph thread；runs/batch.py 依序跑。source_prefix = article_id 前綴。
+#
+# validation：品質閘門設定（P0-1）。article_url_patterns/excluded_url_patterns 是站特有，
+#   用來擋「指數頁/列表頁當新聞」這類假成功。最佳猜測值，之後依黃金集校準。
+sites:
+  - source_prefix: cnyes
+    site_name: 鉅亨網台股新聞
+    site_url: https://news.cnyes.com/news/cat/tw_stock_news
+    validation:
+      allowed_domains: [news.cnyes.com, api.cnyes.com]
+      article_url_patterns: ['/news/id/\d+']
+      excluded_url_patterns: ['/news/cat/']
+      min_content_chars: 40
+      max_age_days: 30
+      min_valid_items: 5
+      min_unique_ratio: 0.8
+
+  - source_prefix: udn
+    site_name: 經濟日報
+    site_url: https://money.udn.com/money/index
+    validation:
+      allowed_domains: [money.udn.com, udn.com]
+      article_url_patterns: ['/story/\d+/\d+']
+      excluded_url_patterns: ['/stock/top', '/rank/', '/cate/']
+      min_content_chars: 40
+      max_age_days: 30
+      min_valid_items: 5
+      min_unique_ratio: 0.8
+
+  - source_prefix: cna
+    site_name: 中央社財經
+    site_url: https://www.cna.com.tw/list/afe.aspx
+    validation:
+      allowed_domains: [www.cna.com.tw, cna.com.tw]
+      article_url_patterns: ['/news/[a-z]+/\d+\.aspx']
+      excluded_url_patterns: ['/list/']
+      min_content_chars: 40
+      max_age_days: 30
+      min_valid_items: 5
+      min_unique_ratio: 0.8
+
+  - source_prefix: ctee
+    site_name: 工商時報
+    site_url: https://www.ctee.com.tw/livenews
+    validation:
+      allowed_domains: [www.ctee.com.tw, ctee.com.tw]
+      article_url_patterns: ['/news/\d+', '/article/\d+']
+      excluded_url_patterns: ['/livenews$', '/category/']
+      min_content_chars: 40
+      max_age_days: 30
+      min_valid_items: 5
+      min_unique_ratio: 0.8
+
+  - source_prefix: moneydj
+    site_name: MoneyDJ理財網
+    site_url: https://www.moneydj.com/kmdj/news/newsreallist.aspx?a=MB010000
+    validation:
+      allowed_domains: [www.moneydj.com, moneydj.com]
+      article_url_patterns: ['(?i)/kmdj/news/news-?viewer\.aspx']
+      excluded_url_patterns: ['newsreallist', '/list']
+      canonical_query_params: [a]
+      min_content_chars: 40
+      max_age_days: 30
+      min_valid_items: 5
+      min_unique_ratio: 0.8

@@ -1,0 +1,246 @@
+{
+  "_note": [
+    "示意圖池。事件與圖片的對應不存資料庫：image_picker.py 用 sha1(event_id) 對池取模，",
+    "同一個 event_id 永遠得到同一張圖。要為特定事件指定特定圖時，才在 events 加 nullable 的",
+    "image_key 欄位（有值優先、沒值走 hash）—— 目前不做。",
+    "",
+    "圖是按 category 配的示意圖，不是新聞原圖（與新聞業慣例一致）。前端會顯示 credit。",
+    "",
+    "補圖流程：把檔案放進本目錄，在 images 加一筆（file/alt/credit/source_url/pools），",
+    "重啟 API（image_picker 對 manifest 有 lru_cache）。程式不用改。"
+  ],
+  "_license": {
+    "source": "Unsplash",
+    "terms": "https://unsplash.com/license",
+    "summary": "免費商用、無需授權費、不強制標示但建議標示。禁止把照片本身當成商品轉售。",
+    "downloaded_at": "2026-07-17"
+  },
+
+  "default_pool": "industry",
+
+  "_category_to_pool_note": [
+    "⚠️ 順序有意義：image_picker 由上往下找第一個命中的分類，不是看事件 categories 的順序。",
+    "真實事件常一次掛 6 個分類 —— 若照事件的順序取，「財報」永遠排最前面，半導體池就永遠選不到。",
+    "所以這裡把「最能決定畫面長相」的分類寫在前面，最泛用的寫在最後。",
+    "實測依據：「產業供需」幾乎每個事件都掛著，把它排前面會讓 finance 池一張都選不到。"
+  ],
+  "category_to_pool": {
+    "生技": "industry",
+    "AI/科技": "semiconductor",
+    "技術突破": "semiconductor",
+    "產品": "semiconductor",
+    "關稅": "policy",
+    "政策": "policy",
+    "法說": "finance",
+    "財報": "finance",
+    "營收": "finance",
+    "金融": "finance",
+    "產業供需": "industry"
+  },
+
+  "images": [
+    {
+      "file": "semiconductor_01.jpg",
+      "alt": "黑色電路板的微距特寫",
+      "credit": "Alexandre Debiève・Unsplash",
+      "source_url": "https://unsplash.com/photos/macro-photography-of-black-circuit-board-FO7JIlwjOtU",
+      "photographer": "Alexandre Debiève",
+      "photographer_url": "https://unsplash.com/@alexkixa",
+      "unsplash_slug": "photo-1518770660439-4636190af475",
+      "pools": ["semiconductor"]
+    },
+    {
+      "file": "semiconductor_02.jpg",
+      "alt": "藍色電路板",
+      "credit": "Umberto・Unsplash",
+      "source_url": "https://unsplash.com/photos/blue-circuit-board-jXd2FSvcRr8",
+      "photographer": "Umberto",
+      "photographer_url": "https://unsplash.com/@umby",
+      "unsplash_slug": "photo-1562408590-e32931084e23",
+      "pools": ["semiconductor"]
+    },
+    {
+      "file": "semiconductor_03.jpg",
+      "alt": "密集排列的方格結構特寫",
+      "credit": "Maxence Pira・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-close-up-of-a-pattern-of-small-squares-7hR3FrFs4Q0",
+      "photographer": "Maxence Pira",
+      "photographer_url": "https://unsplash.com/@maxence_pira",
+      "unsplash_slug": "photo-1672307613484-3254a04651fd",
+      "pools": ["semiconductor"]
+    },
+    {
+      "file": "semiconductor_04.jpg",
+      "alt": "粉紅、綠與藍交錯的方格紋理",
+      "credit": "Laura Ockel・Unsplash",
+      "source_url": "https://unsplash.com/photos/pink-green-and-blue-square-pattern-qOx9KsvpqcM",
+      "photographer": "Laura Ockel",
+      "photographer_url": "https://unsplash.com/@viazavier",
+      "unsplash_slug": "photo-1587845323226-bad89242c735",
+      "pools": ["semiconductor"]
+    },
+    {
+      "file": "semiconductor_05.jpg",
+      "alt": "電腦內部零件特寫",
+      "credit": "Maxence Pira・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-close-up-of-a-computer-aNaq4lbX99E",
+      "photographer": "Maxence Pira",
+      "photographer_url": "https://unsplash.com/@maxence_pira",
+      "unsplash_slug": "photo-1666037801539-f30fd661657a",
+      "pools": ["semiconductor"]
+    },
+    {
+      "file": "semiconductor_06.jpg",
+      "alt": "綠與褐色調的抽象電子紋理",
+      "credit": "Laura Ockel・Unsplash",
+      "source_url": "https://unsplash.com/photos/green-and-brown-abstract-painting-nIEHqGSymRU",
+      "photographer": "Laura Ockel",
+      "photographer_url": "https://unsplash.com/@viazavier",
+      "unsplash_slug": "photo-1543722615-dbf5edf1a00d",
+      "pools": ["semiconductor"]
+    },
+
+    {
+      "file": "finance_01.jpg",
+      "alt": "深色螢幕上的股市 K 線圖",
+      "credit": "Maxim Hopman・Unsplash",
+      "source_url": "https://unsplash.com/photos/stock-market-candlestick-chart-on-dark-screen-fiXLQXAhCfk",
+      "photographer": "Maxim Hopman",
+      "photographer_url": "https://unsplash.com/@nampoh",
+      "unsplash_slug": "photo-1611974789855-9c2a0a7236a3",
+      "pools": ["finance"]
+    },
+    {
+      "file": "finance_02.jpg",
+      "alt": "顯示走勢圖的螢幕特寫",
+      "credit": "Nicholas Cappello・Unsplash",
+      "source_url": "https://unsplash.com/photos/close-up-photo-of-monitor-displaying-graph-Wb63zqJ5gnE",
+      "photographer": "Nicholas Cappello",
+      "photographer_url": "https://unsplash.com/@bash__profile",
+      "unsplash_slug": "photo-1560221328-12fe60f83ab8",
+      "pools": ["finance"]
+    },
+    {
+      "file": "finance_03.jpg",
+      "alt": "手持手機站在股價走勢圖前",
+      "credit": "Adam Śmigielski・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-person-holding-a-cell-phone-in-front-of-a-stock-chart-K5mPtONmpHM",
+      "photographer": "Adam Śmigielski",
+      "photographer_url": "https://unsplash.com/@smigielski",
+      "unsplash_slug": "photo-1645226880663-81561dcab0ae",
+      "pools": ["finance"]
+    },
+    {
+      "file": "finance_04.jpg",
+      "alt": "數據圖表的圖形介面",
+      "credit": "Anne Nygård・Unsplash",
+      "source_url": "https://unsplash.com/photos/graphical-user-interface-application-x07ELaNFt34",
+      "photographer": "Anne Nygård",
+      "photographer_url": "https://unsplash.com/@polarmermaid",
+      "unsplash_slug": "photo-1651341050677-24dba59ce0fd",
+      "pools": ["finance"]
+    },
+
+    {
+      "file": "industry_01.jpg",
+      "alt": "廠房內的大型機具",
+      "credit": "Homa Appliances・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-large-machine-in-a-large-building-pWUyHVJgLhg",
+      "photographer": "Homa Appliances",
+      "photographer_url": "https://unsplash.com/@homaappliances",
+      "unsplash_slug": "photo-1717386255773-1e3037c81788",
+      "pools": ["industry"]
+    },
+    {
+      "file": "industry_02.jpg",
+      "alt": "工廠產線上作業中的大型機具與人員",
+      "credit": "Homa Appliances・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-large-machine-in-a-factory-with-people-working-on-it-0V9Ua2YsXfE",
+      "photographer": "Homa Appliances",
+      "photographer_url": "https://unsplash.com/@homaappliances",
+      "unsplash_slug": "photo-1716194583732-0b9874234218",
+      "pools": ["industry"]
+    },
+    {
+      "file": "industry_03.jpg",
+      "alt": "工廠內作業的工作人員",
+      "credit": "TruckRun・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-group-of-people-working-in-a-factory-XBWF6_TEsFM",
+      "photographer": "TruckRun",
+      "photographer_url": "https://unsplash.com/@truckrun_ebike_systems",
+      "unsplash_slug": "photo-1700727448686-b314cb5f9948",
+      "pools": ["industry"]
+    },
+    {
+      "file": "industry_04.jpg",
+      "alt": "白綠色的金屬機械支架",
+      "credit": "Petr・Unsplash",
+      "source_url": "https://unsplash.com/photos/white-and-green-metal-stand-KR9j7uqFhnI",
+      "photographer": "Petr",
+      "photographer_url": "https://unsplash.com/@mpetrucho",
+      "unsplash_slug": "photo-1621954938124-02e637ba3584",
+      "pools": ["industry"]
+    },
+
+    {
+      "file": "policy_01.jpg",
+      "alt": "設有時鐘的高聳建築",
+      "credit": "Chris Flexen・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-very-tall-building-with-many-windows-and-a-clock-ekAQJDfyEVE",
+      "photographer": "Chris Flexen",
+      "photographer_url": "https://unsplash.com/@chrisflexen",
+      "unsplash_slug": "photo-1515075582657-abb257d7a0ed",
+      "pools": ["policy"]
+    },
+    {
+      "file": "policy_02.jpg",
+      "alt": "水岸邊的白褐色建築，日間",
+      "credit": "Ivan Rohovchenko・Unsplash",
+      "source_url": "https://unsplash.com/photos/white-and-brown-concrete-building-near-body-of-water-during-daytime-JfYSzjNRYUc",
+      "photographer": "Ivan Rohovchenko",
+      "photographer_url": "https://unsplash.com/@ivrn",
+      "unsplash_slug": "photo-1622115469132-124ec9f88fca",
+      "pools": ["policy"]
+    },
+    {
+      "file": "policy_03.jpg",
+      "alt": "水岸邊的圓頂建築，夜間",
+      "credit": "Vojtěch Bulant・Unsplash",
+      "source_url": "https://unsplash.com/photos/white-and-brown-dome-building-near-body-of-water-during-night-time-5-TYLHGcde4",
+      "photographer": "Vojtěch Bulant",
+      "photographer_url": "https://unsplash.com/@vbulant",
+      "unsplash_slug": "photo-1582063411725-9d0778d662de",
+      "pools": ["policy"]
+    },
+    {
+      "file": "policy_04.jpg",
+      "alt": "圓頂與塔樓倒映水面的歷史建築",
+      "credit": "Zoshua Colah・Unsplash",
+      "source_url": "https://unsplash.com/photos/grand-historic-building-with-dome-and-tower-reflected-in-water-hcE6HEtaQAE",
+      "photographer": "Zoshua Colah",
+      "photographer_url": "https://unsplash.com/@zoshuacolah",
+      "unsplash_slug": "photo-1760872645518-8d0ee5ce9098",
+      "pools": ["policy"]
+    },
+    {
+      "file": "policy_05.jpg",
+      "alt": "河岸邊的大型建築",
+      "credit": "Kristijan Arsov・Unsplash",
+      "source_url": "https://unsplash.com/photos/a-large-building-sitting-on-the-side-of-a-river-w2yLOpe0qxo",
+      "photographer": "Kristijan Arsov",
+      "photographer_url": "https://unsplash.com/@aarsoph",
+      "unsplash_slug": "photo-1688415506915-3e32a04c6ff5",
+      "pools": ["policy"]
+    },
+    {
+      "file": "policy_06.jpg",
+      "alt": "夕陽下草原上的風力發電機",
+      "credit": "Karsten Würth・Unsplash",
+      "source_url": "https://unsplash.com/photos/windmill-on-grass-field-during-golden-hour-0w-uTa0Xz7w",
+      "photographer": "Karsten Würth",
+      "photographer_url": "https://unsplash.com/@karsten_wuerth",
+      "unsplash_slug": "photo-1466611653911-95081537e5b7",
+      "pools": ["policy"]
+    }
+  ]
+}

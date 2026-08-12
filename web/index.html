@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="EventSignal：隔著玻璃窺視一間新聞編輯室，把分散新聞收斂成可驗證的市場事件。" />
+  <title>EventSignal · 把新聞收斂成事件</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23242456'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='serif' font-size='18' fill='white'%3EE%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <!-- ===== 固定電影感背景:隔著玻璃窺視內室。捲動時完全不動。 ===== -->
+  <div class="backdrop" id="backdrop" aria-hidden="true">
+    <!-- 真去背分層:後景=門洞後內室(bg)、前景=外側儲藏室含透明門洞(fg);小人畫在兩層之間。 -->
+    <div class="scene" id="scene">
+      <div class="scene__layer scene__far"></div>
+      <canvas id="person-canvas" class="person"></canvas>
+      <div class="scene__layer scene__near"></div>
+    </div>
+    <!-- 玻璃:窗外天光的平面反光(色塊)+ 微霧 + 刮痕。不反射室內場景。 -->
+    <div class="glass">
+      <div class="glass__mist"></div>
+      <div class="glass__sheen glass__sheen--main"></div>
+      <div class="glass__sheen glass__sheen--edge"></div>
+      <div class="glass__grain"></div>
+    </div>
+    <!-- 窗框:讓人感覺站在玻璃外 -->
+    <div class="frame"></div>
+  </div>
+
+  <!-- ===== 捲動內容:玻璃層以上,壓克力啞光面板浮在窗上。整層隨頁面捲動,背景保持不動。 ===== -->
+  <div class="page" id="page">
+    <p class="page__loading">正在整理市場脈絡⋯</p>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

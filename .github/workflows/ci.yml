@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # 刻意不裝 worker extra：那組會拉 torch（約 2 GB），而三套測試都不需要它。
+      # 要驗 worker 依賴解得開，uv.lock 的 --frozen 已經涵蓋。
+      - name: 安裝依賴
+        run: uv sync --frozen --extra api --extra spider-forge --extra crawler
+
+      - name: lint
+        run: uv run ruff check .
+
+      - name: 後端整合測試
+        run: uv run pytest
+
+      - name: Spider Forge 測試
+        run: uv run pytest src/spider_forge/tests -q
+
+      - name: Scrapy 契約測試
+        run: uv run pytest crawler/tests -q
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      # typecheck + eslint + vitest + 循環依賴檢查
+      - run: npm run check

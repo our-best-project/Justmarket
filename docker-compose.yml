@@ -1,0 +1,184 @@
+name: justmarket
+
+x-prefect-database-url: &prefect-database-url
+  PREFECT_API_DATABASE_CONNECTION_URL: >-
+    postgresql+asyncpg://prefect:${PREFECT_DB_PASSWORD:-prefect-local-only}@prefect-db:5432/prefect
+  PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+  PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+  PREFECT_REDIS_MESSAGING_HOST: prefect-redis
+  PREFECT_REDIS_MESSAGING_PORT: "6379"
+  PREFECT_REDIS_MESSAGING_DB: "0"
+
+services:
+  # ── Prefect 自架控制面。存的是排程 metadata，不是應用資料（應用資料在 Neon）──
+  prefect-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: ${PREFECT_DB_PASSWORD:-prefect-local-only}
+      POSTGRES_DB: prefect
+    volumes:
+      - prefect-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect -d prefect"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  prefect-redis:
+    image: redis:7-alpine
+    volumes:
+      - prefect-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  prefect-server:
+    image: prefecthq/prefect:3.8.0-python3.12
+    command: ["prefect", "server", "start", "--no-services"]
+    environment:
+      <<: *prefect-database-url
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+      PREFECT_SERVER_UI_API_URL: http://localhost:4200/api
+    ports:
+      - "127.0.0.1:4200:4200"
+    depends_on:
+      prefect-db:
+        condition: service_healthy
+      prefect-redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request as u; u.urlopen('http://localhost:4200/api/health', timeout=1)
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  prefect-services:
+    image: prefecthq/prefect:3.8.0-python3.12
+    command: ["prefect", "server", "services", "start"]
+    environment:
+      <<: *prefect-database-url
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── ② API 層 ────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: api
+    image: justmarket-api:local
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request as u; u.urlopen('http://localhost:8000/health', timeout=2)
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ── ④ 處理層：三條每日 flow 的 runner ───────────────────────────────────
+  prefect-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+      args:
+        PREFECT_VERSION: "3.8.0"
+    image: justmarket-worker:local
+    env_file:
+      - .env
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_LOGGING_LEVEL: INFO
+      NEWS_SPIDERS: ${NEWS_SPIDERS:-cnyes,twse_mops_finance}
+      NEWS_PIPELINE_STAGES: ${NEWS_PIPELINE_STAGES:-all}
+      EMBEDDING_DEVICE: ${EMBEDDING_DEVICE:-cuda}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-32}
+      HF_HOME: /home/justmarket/.cache/huggingface
+    gpus: all
+    shm_size: 2gb
+    volumes:
+      - huggingface-cache:/home/justmarket/.cache/huggingface
+      - embedding-artifacts:/opt/justmarket/src/eventsignal/embedding/out
+      - clustering-artifacts:/opt/justmarket/src/eventsignal/clustering/out
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+
+  # ── 手動啟動（profiles: manual），不隨 compose up 一起起來 ──────────────
+  crawler:
+    profiles: ["manual"]
+    build:
+      context: .
+      dockerfile: crawler/Dockerfile
+    image: justmarket-crawler:local
+    command: ["list"]
+    environment:
+      SPIDERFORGE_SANDBOX: "1"
+      SPIDERFORGE_ALLOWED_DOMAINS: ""
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 1g
+    cpus: 1.0
+    restart: "no"
+
+  spider-forge:
+    profiles: ["manual"]
+    build:
+      context: .
+      dockerfile: Dockerfile.spider-forge
+    image: justmarket-spider-forge:local
+    env_file:
+      - .env
+    environment:
+      SPIDERFORGE_DATA_DIR: /data/spider_forge
+      SPIDERFORGE_CRAWLER_RUNTIME: docker
+      SPIDERFORGE_CRAWLER_IMAGE: justmarket-crawler:local
+      OLLAMA_HOST: ${SPIDERFORGE_OLLAMA_HOST:-http://host.docker.internal:11434}
+      SPIDERFORGE_JUDGE_MODEL: ${SPIDERFORGE_JUDGE_MODEL:-qwen2.5:7b-instruct}
+    volumes:
+      - ./runtime/spider_forge:/data/spider_forge
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=512m
+    shm_size: 1gb
+    init: true
+    restart: "no"
+
+volumes:
+  prefect-db-data:
+  prefect-redis-data:
+  huggingface-cache:
+  embedding-artifacts:
+  clustering-artifacts:
