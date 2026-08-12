@@ -106,7 +106,7 @@ def transform(raw: dict[str, Any]) -> dict[str, Any] | None:
         "related_tickers": json.dumps([ticker] if ticker else []),
         "published_at": pub_date,    # TODO: 精確到時分（欄位裡若有發言時間可併入）
         "fetched_at": datetime.now(UTC).isoformat(),
-        "url": "https://mops.twse.com.tw/mops/web/t05sr01_1",  # TODO: 之後拼出單則連結
+        "url": "https://mops.twse.com.tw/mops/frontend/t05sr01_1",  # TODO: 之後拼出單則連結
         "status": "pending",         # 交接棒起點，永遠是 pending
     }
 

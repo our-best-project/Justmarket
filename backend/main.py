@@ -38,7 +38,7 @@ app = FastAPI(
 )
 
 # CORS：本機開發時前端在別的 port，串接日最常見的錯就是沒開這個。
-#   5173 = vite dev（web/vite.config.ts）
+#   5173 = vite dev（frontend/vite.config.ts）
 #   4173 = vite preview（同檔）
 # 部署到 GitHub Pages 時前端變成另一個網域，必須用 CORS_EXTRA_ORIGINS 補進來，
 # 例如 CORS_EXTRA_ORIGINS=https://our-best-project.github.io
@@ -64,7 +64,7 @@ app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), na
 # base_url = /api/v1
 app.include_router(events.router, prefix="/api/v1")
 app.include_router(tickers.router, prefix="/api/v1")
-# /demo/*：前端 web/ 實際使用的那組（一次載入、之後純前端切換）。
+# /demo/*：前端 frontend/ 實際使用的那組（一次載入、之後純前端切換）。
 # 與上面 events/tickers 的分離式契約是兩套架構，並存不互相取代。
 app.include_router(demo.router, prefix="/api/v1")
 app.include_router(market.router, prefix="/api/v1")

@@ -38,7 +38,7 @@ uv sync --extra api && uv run python -m backend api
 ### 前端
 
 ```bash
-cd web && npm ci && npm run dev
+cd frontend && npm ci && npm run dev
 ```
 
 `vite dev` 會把 `/api/*` 代理到 `http://127.0.0.1:8000`，所以前後端同源、免 CORS。
@@ -55,7 +55,7 @@ uv run ruff check .
 ```
 
 ```bash
-cd web && npm run check
+cd frontend && npm run check
 ```
 
 另外兩套測試環境獨立，各自跑：`uv run pytest spider_forge/tests`、`uv run pytest crawler/tests`。
@@ -67,7 +67,7 @@ cd web && npm run check
 crawler/   驗證＋標    BGE-M3        去重成事件      摘要    ★重要性
 （Scrapy） ticker      1024 維                       分類    市場驗證分數
                                                               │
-                              web/  ←──  api（只讀 FastAPI）  ←┘
+                              frontend/  ←──  api（只讀 FastAPI）  ←┘
                           （GitHub Pages）      Cloud Run
 ```
 
@@ -85,7 +85,7 @@ crawler/   驗證＋標    BGE-M3        去重成事件      摘要    ★重�
 | `backend/` | 後端主套件。子模組職責見 [`__init__.py`](backend/__init__.py) |
 | `spider_forge/` | AI 爬蟲生成系統。獨立執行，**不在任何管線 flow 內** |
 | `crawler/` | 正式 Scrapy 專案。被 `ingestion` 以子程序呼叫，不被 import |
-| `web/` | 前端（TypeScript + Vite + three.js），唯一版本 |
+| `frontend/` | 前端（TypeScript + Vite + three.js），唯一版本 |
 | `db/` | PostgreSQL DDL 與 migrations |
 | `data/` | 共用語料與 ticker stoplist |
 | `scripts/` | 一次性維運腳本（資料修復、DB 觀測） |

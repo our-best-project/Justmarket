@@ -32,7 +32,7 @@ AGENTS.md
 CLAUDE.md
 
 # ── API target 用不到的目錄 ──────────────────────────
-web/
+frontend/
 db/
 runtime/
 tests/

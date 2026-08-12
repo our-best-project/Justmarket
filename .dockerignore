@@ -8,7 +8,7 @@
 .memsearch
 
 # 前端不進任何 Python 映像檔
-web
+frontend
 
 # 文件、資料資產、維運腳本都不需要進映像檔
 docs

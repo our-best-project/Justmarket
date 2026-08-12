@@ -105,7 +105,7 @@ build context 是 repo 根目錄，`.gcloudignore` 控制上傳範圍（也負�
 
 ## 前端部署（GitHub Pages）
 
-`.github/workflows/pages.yml` 在 push 到 main 時建置 `web/` 並發佈。
+`.github/workflows/pages.yml` 在 push 到 main 時建置 `frontend/` 並發佈。
 
 兩個 build 期變數：
 
@@ -128,7 +128,7 @@ uv run python -m backend api
 ```
 
 ```bash
-cd web && npm run dev
+cd frontend && npm run dev
 ```
 
 `vite dev` 把 `/api/*` 代理到 `http://127.0.0.1:8000`，前後端同源、免 CORS。

@@ -1,7 +1,7 @@
 # scoring — 重要性 ★1–5 與市場驗證 0–100
 
 兩個**獨立**的數字。鐵律只有一條：**每個分數都要能拆解出理由**，不能只給星等。
-分開的理由見 [`docs/decisions.md`](../../../docs/decisions.md) 第 4 條。
+分開的理由見 [`docs/decisions.md`](../../docs/decisions.md) 第 4 條。
 
 ## importance.py — 重要性 ★1–5（排序用）
 

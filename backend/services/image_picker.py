@@ -56,7 +56,7 @@ def pick_image(event_id: str, categories: list[str] | None, origin: str = "") ->
     前端跑在別的 port（4175），拿到相對路徑會去它自己的 host 找圖而 404，所以必須絕對。
     傳空字串則回相對路徑（同源部署時適用）。
 
-    前端對 image 為 null 有處理（web/ 前端直接回空字串、
+    前端對 image 為 null 有處理（frontend/ 前端直接回空字串、
     列表列退回序號方塊），所以回 None 是安全的，不會破版。
     """
     pools, cat2pool, default_pool = _load()

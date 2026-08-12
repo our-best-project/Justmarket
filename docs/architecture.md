@@ -10,7 +10,7 @@
 ## 四層
 
 ```
-① 前端 web/            使用者看到的網頁（TypeScript + Vite），GitHub Pages 靜態部署
+① 前端 frontend/            使用者看到的網頁（TypeScript + Vite），GitHub Pages 靜態部署
 ② API  backend/api/    只讀 FastAPI，Cloud Run
 ③ 儲存 Neon PostgreSQL + pgvector
 ④ 處理 backend/ 其餘   背景管線，Prefect 排程
@@ -85,7 +85,7 @@ scoring        重要性 ★1–5、市場驗證 0–100              → scored
 `/events`、`/tickers` 是分離式契約（列表、詳情、時間軸各一支）；
 `/demo/*` 是一次載入式（bootstrap 一支回傳首頁全部資料，之後純前端切換）。
 
-前端 `web/` 用的是後者。兩套並存不互相取代 —— 前者是通用契約，後者是為「一次載入、
+前端 `frontend/` 用的是後者。兩套並存不互相取代 —— 前者是通用契約，後者是為「一次載入、
 零等待切換」的展示體驗設計的。要收斂成一套的話該砍的是前者，但那會動到契約，屬難逆決定。
 
 端點清單見 [`api.md`](api.md)。

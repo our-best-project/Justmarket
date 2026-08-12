@@ -100,7 +100,7 @@ class TwseMopsFinanceSpider(scrapy.Spider):
     hist_list_endpoint = api_root + "t05st01"
     hist_detail_endpoint = api_root + "t05st01_detail"
     fallback_endpoint = "https://openapi.twse.com.tw/v1/opendata/t187ap04_L"
-    lookup_page = "https://mops.twse.com.tw/mops/#/web/t05st01"
+    lookup_page = "https://mops.twse.com.tw/mops/#/frontend/t05st01"
     taipei_tz = timezone(timedelta(hours=8))
     valid_markets = {"sii", "otc", "rotc", "pub"}
 

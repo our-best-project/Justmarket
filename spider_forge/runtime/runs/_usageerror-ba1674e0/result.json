@@ -1,0 +1,15 @@
+{
+  "run_id": "_usageerror-ba1674e0",
+  "site_name": "故障站",
+  "source_prefix": "_usageerror",
+  "site_url": "https://example.com",
+  "status": "error",
+  "error": "deliberate graph failure",
+  "retry_count": null,
+  "repair_count": null,
+  "first_pass_success": false,
+  "llm_calls": 1,
+  "coder_tokens": 15,
+  "pipeline_log": "/home/haoche_nitro_v15/Justmarket/spider_forge/runtime/runs/_usageerror-ba1674e0/pipeline.log",
+  "duration_s": 0.0
+}

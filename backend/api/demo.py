@@ -1,12 +1,12 @@
 """V3 Demo 端點：GET /demo/bootstrap —— 一次回傳首頁要的全部資料。
 
 【為什麼是一個大端點而不是沿用 /events/today】
-web/ 前端只呼叫 bootstrap 與 market/overview 兩個端點，
+frontend/ 前端只呼叫 bootstrap 與 market/overview 兩個端點，
 一次載入、之後純前端切換。這與既有的 /events/today + /events/{id} + /timeline 分離式
 契約是兩套不同架構 —— 這裡不動既有端點，另開 demo 專用端點，兩者並存。
 
 【契約來源】
-形狀由 web/src/types.ts 的 MarketEvent／EventCatalog 定義，與 /events、/tickers 那組分離式契約不同。
+形狀由 frontend/src/types.ts 的 MarketEvent／EventCatalog 定義，與 /events、/tickers 那組分離式契約不同。
 
 【與 DB 的三個形狀落差，都在這裡吸收】
 1. related_tickers：DB 是字串陣列 ["2330"]，前端要 [{ticker,name}]（app.js:343 讀 .ticker/.name）

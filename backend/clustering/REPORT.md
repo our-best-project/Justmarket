@@ -238,7 +238,7 @@ golden F1 三次量測皆為 0.914——粒度變化未傷準確度。
 | `clustering_Timyo/out/event_objects.jsonl` | **最終事件物件**（run.py 產出，3083 事件；多篇 298、單篇 2785） |
 | `clustering_Timyo/out/periodic_filtered.jsonl` | 被週期過濾的 1031 篇交接清單（article_id / periodic_type / next_status），DB 就緒後據此把 status 推進 `periodic` |
 | `clustering_Timyo/dedup.py` | 週期過濾規則 + 聚類定案實作（含自我測試） |
-| `clustering_Timyo/legacy_clusterers.py` | 二版 HDBSCAN 管線重建（§4.1 對照用，非現行定案） |
+| `clustering/legacy_clusterers.py` | 二版 HDBSCAN 管線重建（§4.1 對照用，非現行定案） |
 | `clustering_Timyo/golden_set.json` | T23 標註（64 篇/40 事件） |
 | `clustering_Timyo/golden_eval.py` | T23 評測腳本（standalone + induced 雙口徑） |
 

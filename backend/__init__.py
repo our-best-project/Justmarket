@@ -4,7 +4,7 @@
 
     crawler/（Scrapy）→ ingestion → embedding → clustering → llm → scoring
                                                                       ↓
-                                              api（只讀 FastAPI）→ web/
+                                              api（只讀 FastAPI）→ frontend/
 
 各段之間不直接傳資料，一律用 `articles.status` 當交接棒：
 `pending → vectorized → clustered → summarized → scored`。

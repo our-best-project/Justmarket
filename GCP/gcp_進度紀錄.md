@@ -9,7 +9,7 @@
 > ⚠️ **這份是歷史紀錄，不是現況導覽。** 2026-08-12 稍晚 repo 做了目錄重構：
 > `workspace/` 那層拿掉、`backend/app/` 變成根目錄的 `backend/`、
 > `backend/Dockerfile` 移到根目錄、四份 requirements 併成 `pyproject.toml` + `uv.lock`、
-> 前端改名 `web/`。下面第 4 節之後提到的路徑指的是**當時**的結構，刻意保留原文不改。
+> 前端改名 `frontend/`。下面第 4 節之後提到的路徑指的是**當時**的結構，刻意保留原文不改。
 > 現在要部署，照 [`README.md`](README.md) 走就好，指令與腳本都還是同一套。
 
 ---

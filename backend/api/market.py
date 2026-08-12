@@ -110,7 +110,7 @@ def market_overview(
 # ───────────────────────────────────────────────────────────────────────────
 # GET /market/global —— 各國大盤指數（前端「今日大局」GLOBAL PULSE 面板真資料）
 #
-# 回傳形狀對齊前端 GlobalMarket（web/.../src/types.ts:100-119）。
+# 回傳形狀對齊前端 GlobalMarket（frontend/.../src/types.ts:100-119）。
 # 資料源 Yahoo chart API，由 backend.market_index.daily_batch 每日盤後 upsert 進兩張表：
 #   market_indices（靜態主檔）＋ market_index_daily（每日收盤）。
 # return5d/return20d/series20 一律用「交易日」即時算，不落地（呼應本檔頂 README:36 精神）。

@@ -262,6 +262,5 @@ docker compose --profile manual run --rm spider-forge run --url "https://example
 - DeepSeek／Kimi：程式生成與修復。
 - Gemini：預設主題判定；服務不可用時拒絕升版。
 
-現行設計與後續工作以本 README 及
-[`REFACTOR_PLAN.md`](REFACTOR_PLAN.md) 為準；歷史規格與實驗索引見
-[`docs/00_index.md`](../../../../docs/00_index.md)。
+現行設計以本 README 為準。這個子系統與正式管線的邊界（為什麼是手動的）
+見 [`docs/decisions.md`](../docs/decisions.md) 第 7 條。

@@ -195,7 +195,7 @@ def t_official_record_id_can_supply_identity():
         "min_valid_items": 5,
     }
     now = datetime.now(_TW).isoformat()
-    lookup_url = "https://mops.twse.com.tw/mops/#/web/t05sr01_1"
+    lookup_url = "https://mops.twse.com.tw/mops/#/frontend/t05sr01_1"
     items = [
         {
             "title": f"{1000 + i} 測試公司｜重大訊息公告",
@@ -220,7 +220,7 @@ def t_missing_official_record_id_rejected():
     }
     item = {
         "title": "缺少來源資料列身分的官方公告",
-        "url": "https://mops.twse.com.tw/mops/#/web/t05sr01_1",
+        "url": "https://mops.twse.com.tw/mops/#/frontend/t05sr01_1",
         "content": "官方重大訊息完整說明內容" * 10,
         "published_at": datetime.now(_TW).isoformat(),
     }
