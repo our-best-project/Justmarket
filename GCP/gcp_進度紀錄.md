@@ -148,7 +148,7 @@ README 的分工表裡，`frontend_Jenny/` 的任務 T08、T18、T19、T22 全�
 ## 步驟 2：登入 Google 帳號
 
 ```powershell
-gcloud auth login              # → jsv1001jsv@gmail.com
+gcloud auth login              # → <GCP 帳號 email>
 gcloud billing accounts list   # → Listed 0 items.（發現沒有計費帳戶）
 ```
 
@@ -166,7 +166,7 @@ gcloud billing accounts list   # → Listed 0 items.（發現沒有計費帳戶�
 2. 再回 <https://console.cloud.google.com/freetrial> 走試用註冊
 3. 付款方式下拉選單會出現已存好的卡片，直接選 → 一次過
 
-**結果：** 計費帳戶 `01E030-613B23-643B9C`，含 $300 / 90 天試用金。
+**結果：** 計費帳戶 `<BILLING_ACCOUNT_ID>`，含 $300 / 90 天試用金。
 
 ---
 
@@ -221,7 +221,7 @@ docker run --rm -p 8001:8000 --env-file .env eventsignal-api:test   # 改用 800
 ## 步驟 4：綁計費 + 啟用 API + Artifact Registry
 
 ```powershell
-.\setup-gcp.ps1 -ProjectId eventsignal-nash-2026 -BillingAccount 01E030-613B23-643B9C
+.\setup-gcp.ps1 -ProjectId eventsignal-nash-2026 -BillingAccount <BILLING_ACCOUNT_ID>
 ```
 
 ### 踩坑 1：PowerShell 讀 .ps1 的編碼
@@ -246,7 +246,7 @@ repo 本來就還沒建）。Stop 模式下 PowerShell 5.1 會把原生指令的
 
 | 項目 | 值 |
 |---|---|
-| 計費 | ✅ 已連結 `01E030-613B23-643B9C` |
+| 計費 | ✅ 已連結 `<BILLING_ACCOUNT_ID>` |
 | 已啟用 API | `run` / `cloudbuild` / `artifactregistry` |
 | Artifact Registry | `asia-southeast1-docker.pkg.dev/eventsignal-nash-2026/eventsignal` |
 
@@ -398,7 +398,7 @@ gcloud run services describe eventsignal-api --region=asia-southeast1
 ```powershell
 gcloud services enable billingbudgets.googleapis.com --project=eventsignal-nash-2026
 
-gcloud billing budgets create --billing-account=01E030-613B23-643B9C --display-name="EventSignal 每月預算" --budget-amount=300 --threshold-rule="percent=0.5" --threshold-rule="percent=0.9" --threshold-rule="percent=1.0,basis=forecasted-spend" --filter-projects="projects/eventsignal-nash-2026"
+gcloud billing budgets create --billing-account=<BILLING_ACCOUNT_ID> --display-name="EventSignal 每月預算" --budget-amount=300 --threshold-rule="percent=0.5" --threshold-rule="percent=0.9" --threshold-rule="percent=1.0,basis=forecasted-spend" --filter-projects="projects/eventsignal-nash-2026"
 ```
 
 **結果：** `Created [5ab293fc-9609-4b17-9600-d91ceab98022]`
@@ -408,7 +408,7 @@ gcloud billing budgets create --billing-account=01E030-613B23-643B9C --display-n
 | 金額 | TWD 300 / 月 |
 | 範圍 | 僅 `eventsignal-nash-2026` 專案 |
 | 門檻 | 實際花費 50%、90%；**預測**花費 100% |
-| 收件者 | 計費帳戶管理員（`jsv1001jsv@gmail.com`） |
+| 收件者 | 計費帳戶管理員（`<GCP 帳號 email>`） |
 
 ### ⚠️ 預算提醒只會「通知」，不會「停止」花費
 

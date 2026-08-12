@@ -1,4 +1,4 @@
-"""MOPS 重大訊息爬蟲骨架（EventSignal 管線的進貨員）
+"""MOPS 重大訊息爬蟲骨架（Justmarket 管線的進貨員）
 
 資料來源：TWSE OpenAPI（免金鑰、回 JSON）
     https://openapi.twse.com.tw/v1/opendata/t187ap04_L   ← 上市公司重大訊息

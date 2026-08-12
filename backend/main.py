@@ -31,7 +31,7 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(
-    title="EventSignal API",
+    title="Justmarket API",
     description="台股事件分析平台 只讀 API（契約：0630_MVP規格/04_API_v2.md）",
     version="0.1.0",
     lifespan=lifespan,

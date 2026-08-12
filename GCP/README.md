@@ -125,7 +125,7 @@ gcloud config set project eventsignal-nash-2026
 gcloud config set run/region asia-southeast1
 ```
 
-用**同一個 Google 帳號**（`jsv1001jsv@gmail.com`）登入。
+用**同一個 Google 帳號**（`<GCP 帳號 email>`）登入。
 驗證看得到既有服務：
 
 ```powershell

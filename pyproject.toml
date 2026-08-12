@@ -1,7 +1,7 @@
 [project]
 name = "justmarket"
 version = "0.1.0"
-description = "就市論事 Justmarket：把台股新聞收斂成可驗證的事件（爬蟲→向量化→去重聚類→LLM→評分→只讀 API）"
+description = "就事論市 Justmarket：把台股新聞收斂成可驗證的事件（爬蟲→向量化→去重聚類→LLM→評分→只讀 API）"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 

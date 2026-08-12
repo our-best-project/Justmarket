@@ -1,4 +1,4 @@
-"""EventSignal 的三條 Prefect flow。
+"""Justmarket 的三條 Prefect flow。
 
 - news_daily：crawler → Neon → embedding → clustering → LLM → scoring
 - market_index_daily：各國大盤 Yahoo 日線 → Neon

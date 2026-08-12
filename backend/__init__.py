@@ -1,4 +1,4 @@
-"""backend —— 就市論事 Justmarket 的後端套件。
+"""backend —— 就事論市 Justmarket 的後端套件。
 
 一條主線，五個處理段，兩個對外面：
 

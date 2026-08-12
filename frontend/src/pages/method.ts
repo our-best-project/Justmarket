@@ -12,7 +12,7 @@ export function renderMethod(): string {
       <section class="section section--top">
         <p class="section__eyebrow">HOW IT WORKS</p>
         <div class="section__head"><h1 class="section__title">方法：從新聞到可驗證的事件</h1></div>
-        <p class="section__note">EventSignal 的每個數字都對應「已經發生」的事，一致度分數只是市場反應的摘要，不是買賣建議。</p>
+        <p class="section__note">Justmarket 的每個數字都對應「已經發生」的事，一致度分數只是市場反應的摘要，不是買賣建議。</p>
         <div class="method">${steps.map(([number, title, description]) => `<div class="method__card acrylic"><span class="method__n">${number}</span><h3>${title}</h3><p>${description}</p></div>`).join("")}</div>
         <div class="method__note acrylic"><b>一致度分數怎麼看</b><p>分數綜合「官方確認程度、來源數、事件前後量價與籌碼反應」，越高代表市場越明確地反應了這件事；「觀察中」表示反應尚未成形。全部以已發生資料計算，不含任何預測。</p></div>
       </section></div>`;

@@ -1,5 +1,5 @@
 #!/bin/bash
-# EventSignal 每日盤後管線（GCE 排程開機後由 startup-script 呼叫）。
+# Justmarket 每日盤後管線（GCE 排程開機後由 startup-script 呼叫）。
 #
 # 【兩個關鍵設計決定】
 # 1. FinMind 用 --demand-only 而非全量：只抓「未定案事件的股票 ∪ 權值股熱門池」。

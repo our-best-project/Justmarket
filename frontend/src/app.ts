@@ -21,7 +21,7 @@ import { mountCardImageFallbacks, mountRowImageFallbacks } from "./components";
 import { getNavigationRoute, parseRoute } from "./router";
 import type { Dispose, MarketEvent } from "./types";
 
-export interface CreateEventSignalAppOptions {
+export interface CreateJustmarketAppOptions {
   readonly page: HTMLElement;
   readonly eventSource: EventSource;
   readonly dashboardSource: DashboardSource;
@@ -32,7 +32,7 @@ function renderAppShell(): string {
   return `
     <header class="site-header acrylic">
       <div class="header-bar">
-        <a class="brand" href="#home" aria-label="EventSignal 首頁"><span class="brand__mark">E</span><strong>EventSignal</strong></a>
+        <a class="brand" href="#home" aria-label="就事論市 Justmarket 首頁"><span class="brand__mark">J</span><strong>就事論市</strong></a>
         <nav class="primary-nav" aria-label="主要導覽">
           <a href="#home" data-nav="home">本期</a><a href="#board" data-nav="board">今日大局</a>
           <a href="#all" data-nav="all">全部事件</a>
@@ -46,7 +46,7 @@ function renderAppShell(): string {
     </header>
     <main id="view"></main>
     <footer class="site-footer acrylic">
-      <p>EventSignal・把新聞收斂成事件</p><p>資料源：EventSignal API（取不到資料時顯示錯誤，不以模擬值替代）</p><p>描述已發生反應，不提供買賣建議</p>
+      <p>就事論市 Justmarket・把新聞收斂成事件</p><p>資料源：Justmarket API（取不到資料時顯示錯誤，不以模擬值替代）</p><p>描述已發生反應，不提供買賣建議</p>
     </footer>`;
 }
 
@@ -81,8 +81,8 @@ function createToast(): {
   };
 }
 
-export async function createEventSignalApp(
-  options: CreateEventSignalAppOptions,
+export async function createJustmarketApp(
+  options: CreateJustmarketAppOptions,
 ): Promise<Dispose> {
   const { page, eventSource, dashboardSource, watchlist } = options;
   const [catalog, dashboard] = await Promise.all([
@@ -93,7 +93,7 @@ export async function createEventSignalApp(
   page.innerHTML = renderAppShell();
   const view = page.querySelector<HTMLElement>("#view");
   if (!view) {
-    throw new Error("EventSignal app shell did not render #view.");
+    throw new Error("Justmarket app shell did not render #view.");
   }
 
   const searchForm = page.querySelector<HTMLFormElement>(".header-search");

@@ -21,7 +21,7 @@ export function renderWatchlist(options: WatchlistRenderOptions): string {
       <section class="section section--top">
         <p class="section__eyebrow">YOUR WATCHLIST</p>
         <div class="section__head"><h1 class="section__title">自選</h1><span class="big-count"><b>${watchedEvents.length}</b> 件收藏</span></div>
-        <p class="section__note">只追你在意的事件；事件內容取自 EventSignal API，收藏存在本機瀏覽器。</p>
+        <p class="section__note">只追你在意的事件；事件內容取自 Justmarket API，收藏存在本機瀏覽器。</p>
         ${body}
       </section></div>`;
 }

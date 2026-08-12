@@ -1,6 +1,6 @@
 import "./styles/index.css";
 
-import { createEventSignalApp } from "./app";
+import { createJustmarketApp } from "./app";
 import { FetchDashboardSource, FetchEventSource } from "./data";
 import { parseRoute } from "./router";
 import { mountStartupError, renderStartupError } from "./pages/startup-error";
@@ -17,7 +17,7 @@ async function bootstrap(): Promise<Dispose> {
   const personCanvas = document.querySelector<HTMLCanvasElement>("#person-canvas");
 
   if (!page || !personCanvas) {
-    throw new Error("EventSignal requires #page and #person-canvas.");
+    throw new Error("Justmarket requires #page and #person-canvas.");
   }
 
   let disposeAmbientScene: Dispose | undefined;
@@ -42,7 +42,7 @@ async function bootstrap(): Promise<Dispose> {
   syncAmbientScene();
   window.addEventListener("hashchange", syncAmbientScene);
 
-  const disposeApp = await createEventSignalApp({
+  const disposeApp = await createJustmarketApp({
     page,
     eventSource: new FetchEventSource(),
     dashboardSource: new FetchDashboardSource(),
@@ -67,7 +67,7 @@ void bootstrap()
     dispose = cleanup;
   })
   .catch((error: unknown) => {
-    console.error("EventSignal failed to start.", error);
+    console.error("Justmarket failed to start.", error);
     // ⚠️ 只印 console 等於給使用者一片白畫面。拿掉 mock 退路之後，
     // 「取不到資料」變成正常會遇到的狀態，必須畫得出來。
     const page = document.querySelector<HTMLElement>("#page");

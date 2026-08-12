@@ -60,7 +60,7 @@ export function renderHome(options: HomeRenderOptions): string {
   return `
     <section class="hero">
       <div class="hero__inner">
-        <p class="hero__eyebrow">WHY EVENTSIGNAL <em>From scattered headlines to verifiable market events.</em></p>
+        <p class="hero__eyebrow">WHY JUSTMARKET <em>From scattered headlines to verifiable market events.</em></p>
         <h1 class="hero__title">把分散新聞，<span class="accent">收斂</span>成<br>可驗證的市場事件。</h1>
         <p class="hero__sub">整併多來源、還原事件脈絡，再用已發生的價格與籌碼資料，確認市場是否真的反應。</p>
         <div class="hero__stat acrylic"><span><b>${meta.total_sources || 0}</b> 篇報導</span><span class="arrow">→</span><span><b>${meta.total_events || events.length}</b> 個可驗證事件</span><span>更新 ${escapeHtml(formatTime(meta.as_of))}</span></div>

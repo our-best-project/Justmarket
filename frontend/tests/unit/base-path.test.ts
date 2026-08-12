@@ -9,9 +9,9 @@ describe("normalizeBasePath", () => {
     ["/", "/"],
     [".", "./"],
     ["./", "./"],
-    ["event-signal", "/event-signal/"],
-    ["/event-signal", "/event-signal/"],
-    ["/event-signal/", "/event-signal/"],
+    ["justmarket", "/justmarket/"],
+    ["/justmarket", "/justmarket/"],
+    ["/justmarket/", "/justmarket/"],
   ])("normalizes %s to %s", (input, expected) => {
     expect(normalizeBasePath(input)).toBe(expected);
   });
