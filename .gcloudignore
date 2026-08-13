@@ -32,11 +32,11 @@ AGENTS.md
 CLAUDE.md
 
 # ── API target 用不到的目錄 ──────────────────────────
-frontend/
-db/
-runtime/
-tests/
-scripts/
+/frontend/
+/db/
+/runtime/
+/tests/
+/scripts/
 crawler/out/
 backend/embedding/out/
 backend/embedding/out_subset/
@@ -53,3 +53,5 @@ data/*
 # ── 文件 ────────────────────────────────────────
 *.md
 !backend/**/*.md
+
+!README.md
