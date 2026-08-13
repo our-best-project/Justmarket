@@ -47,8 +47,9 @@ export function renderHome(options: HomeRenderOptions): string {
   const heatTail = heatEntries.slice(6);
   // 佔比條：讀者要看的是「本期報導集中在哪」，不是無分母的絕對篇數。
   // 前 6 名各佔一段，第 7 名以後併成「其他」，整條加起來剛好是 100%。
+  // 標籤省掉「業」字尾（半導體業→半導體），tooltip 仍給全名
   const heatSlices = heatEntries.slice(0, 6).map(([industry, n], index) => ({
-    name: industry,
+    name: industry.replace(/業$/, ""),
     share: (n.articles / heatTotal) * 100,
     tip: `${industry}・${n.articles} 篇報導・${n.events} 件事件`,
     tone: 100 - index * 15,
