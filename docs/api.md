@@ -57,8 +57,13 @@
 副作用：`meta.as_of` 最多落後 TTL 秒。demo 時想立刻看到 DB 改動就設成 `0`。
 ⚠️ 這個變數必須是真正的環境變數，寫在 `.env` 太晚 —— 快取物件在模組 import 時就建好了。
 
-**CORS**：預設只開本機的 5173／4173。前端部署到別的網域（例如 GitHub Pages）時，
-用 `CORS_EXTRA_ORIGINS=https://our-best-project.github.io` 補進來。只開 `GET`。
+**CORS**：預設清單是本專案自己的前端會出現的位置 —— 本機 5173／4173，加上
+GitHub Pages 正式站 `https://our-best-project.github.io`。其他來源（預覽部署、
+自訂網域）用 `CORS_EXTRA_ORIGINS` 逗號分隔補進來。只開 `GET`。
+
+CORS 設錯的失敗方式特別安靜：API 回 200、log 乾淨、`curl` 也完全正常，
+只有瀏覽器 console 會說話。所以正式站台的 origin 寫進程式碼預設值，
+並由 `tests/test_cors.py` 守著。
 
 ## 誠實標註：目前吐不出來的欄位
 

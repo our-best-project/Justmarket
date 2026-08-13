@@ -33,10 +33,12 @@ jobs:
 
       # BASE_PATH：Pages 站台掛在 /<repo>/ 底下，資源路徑必須帶這一段。
       # VITE_API_BASE：Pages 是靜態站，沒有 proxy —— API 位址必須是絕對網址。
-      #   設定位置：repo Settings → Secrets and variables → Actions → Variables，
-      #   新增 API_BASE，值例如 https://<cloud-run-host>/api/v1。
-      #   還沒設就會退回相對路徑 /api/v1，頁面會顯示「取不到資料」的錯誤頁
+      #   來源是 repo variable API_BASE（Settings → Secrets and variables →
+      #   Actions → Variables），目前指向 Cloud Run 的 /api/v1。
+      #   沒設就會退回相對路徑 /api/v1，頁面顯示「取不到資料」的錯誤頁
       #   —— 這是刻意的，不以模擬值冒充真實資料。
+      #   ⚠️ 這裡只決定「打哪個網址」；能不能打得到還要看後端的 CORS
+      #      （backend/main.py 的 DEFAULT_ORIGINS，改完要重新部署 Cloud Run）。
       - name: build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/

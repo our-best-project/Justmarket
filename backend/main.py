@@ -37,21 +37,26 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS：本機開發時前端在別的 port，串接日最常見的錯就是沒開這個。
+# CORS：前端跟 API 不同源，串接日最常見的錯就是沒開這個。
+#
+# 預設清單放「本專案自己的前端」會出現的位置——本機開發兩個 port，加上正式站台。
+# 正式站台寫進預設而不是只靠環境變數：它是這個 API 唯一的公開前端，
+# 少設一個變數就整站取不到資料，那種失敗只在瀏覽器 console 看得到，很難查。
 #   5173 = vite dev（frontend/vite.config.ts）
 #   4173 = vite preview（同檔）
-# 部署到 GitHub Pages 時前端變成另一個網域，必須用 CORS_EXTRA_ORIGINS 補進來，
-# 例如 CORS_EXTRA_ORIGINS=https://our-best-project.github.io
-# 寫成環境變數而不是寫死：同一個映像檔要能同時服務 Pages 與本機，網址變動不該重 build。
-_LOCAL_ORIGINS = [
+#   github.io = GitHub Pages 正式站（.github/workflows/pages.yml 發佈）
+#
+# 其他來源（預覽部署、自訂網域）用 CORS_EXTRA_ORIGINS 逗號分隔補進來，不必改程式。
+DEFAULT_ORIGINS = [
     "http://localhost:5173", "http://127.0.0.1:5173",
     "http://localhost:4173", "http://127.0.0.1:4173",
+    "https://our-best-project.github.io",
 ]
 _EXTRA_ORIGINS = [o.strip() for o in os.environ.get("CORS_EXTRA_ORIGINS", "").split(",") if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[*_LOCAL_ORIGINS, *_EXTRA_ORIGINS],
+    allow_origins=[*DEFAULT_ORIGINS, *_EXTRA_ORIGINS],
     allow_methods=["GET"],          # API 只讀，只開 GET
     allow_headers=["*"],
 )

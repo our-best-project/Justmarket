@@ -110,7 +110,17 @@ Write-Step 'Cloud Run 部署'
 $envYaml = Join-Path $env:TEMP "eventsignal-env-$(Get-Random).yaml"
 try {
     # YAML 單引號字串：內部的 ' 要寫成 ''
-    Set-Content -Path $envYaml -Value "DATABASE_URL: '$($databaseUrl.Replace("'", "''"))'" -Encoding UTF8
+    $envLines = @("DATABASE_URL: '$($databaseUrl.Replace("'", "''"))'")
+
+    # 正式站台的 origin 已寫在 backend/main.py 的 DEFAULT_ORIGINS，這裡不必設。
+    # 只有要多開別的來源（預覽部署、自訂網域）才需要在 .env 放 CORS_EXTRA_ORIGINS。
+    $corsExtra = $envMap['CORS_EXTRA_ORIGINS']
+    if (-not [string]::IsNullOrWhiteSpace($corsExtra)) {
+        $envLines += "CORS_EXTRA_ORIGINS: '$($corsExtra.Replace("'", "''"))'"
+        Write-Host "    CORS_EXTRA_ORIGINS = $corsExtra"
+    }
+
+    Set-Content -Path $envYaml -Value $envLines -Encoding UTF8
 
     & gcloud run deploy $ServiceName `
         --image=$ImageUri `

@@ -111,13 +111,15 @@ build context 是 repo 根目錄，`.gcloudignore` 控制上傳範圍（也負�
 
 - `BASE_PATH` —— workflow 自動帶 `/<repo>/`，Pages 站台掛在子路徑底下，資源路徑要有這一段。
 - `VITE_API_BASE` —— 取自 repo variable `API_BASE`。**Pages 是靜態站，沒有 proxy，
-  API 位址必須是絕對網址**，例如 `https://<cloud-run-host>/api/v1`。
-  設定位置：Settings → Secrets and variables → Actions → Variables。
+  API 位址必須是絕對網址**。目前設為 Cloud Run 的 `/api/v1`。
+  改的位置：Settings → Secrets and variables → Actions → Variables。
 
 沒設 `API_BASE` 時前端會退回相對路徑並顯示「取不到資料」的錯誤頁 —— 這是刻意的，
 不以模擬值冒充真實資料。
 
-後端那邊要同步把 Pages 的 origin 加進 `CORS_EXTRA_ORIGINS`。
+Pages 的 origin 已經寫在 `backend/main.py` 的 `DEFAULT_ORIGINS` 裡，
+不需要另外設環境變數；`tests/test_cors.py` 守著它不被改掉。
+⚠️ 但 CORS 是**後端**的設定 —— 改完要重新部署 Cloud Run 才會生效。
 
 ## 本機開發（還沒有 Cloud Run 也能跑）
 
