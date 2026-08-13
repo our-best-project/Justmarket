@@ -44,11 +44,12 @@ export function renderHome(options: HomeRenderOptions): string {
     (a, b) => b[1].articles - a[1].articles,
   );
   const heatTotal = heatEntries.reduce((sum, [, n]) => sum + n.articles, 0);
-  const heatTail = heatEntries.slice(6);
+  const heatTail = heatEntries.slice(4);
   // 佔比條：讀者要看的是「本期報導集中在哪」，不是無分母的絕對篇數。
-  // 前 6 名各佔一段，第 7 名以後併成「其他」，整條加起來剛好是 100%。
+  // 前 4 名各佔一段，第 5 名以後併成「其他」，整條加起來剛好是 100%——
+  // 段數與標籤數一致，標籤才剛好排成一列。
   // 標籤省掉「業」字尾（半導體業→半導體），tooltip 仍給全名
-  const heatSlices = heatEntries.slice(0, 6).map(([industry, n], index) => ({
+  const heatSlices = heatEntries.slice(0, 4).map(([industry, n], index) => ({
     name: industry.replace(/業$/, ""),
     share: (n.articles / heatTotal) * 100,
     tip: `${industry}・${n.articles} 篇報導・${n.events} 件事件`,
@@ -58,7 +59,7 @@ export function renderHome(options: HomeRenderOptions): string {
     const articles = heatTail.reduce((sum, [, n]) => sum + n.articles, 0);
     const tailEvents = heatTail.reduce((sum, [, n]) => sum + n.events, 0);
     heatSlices.push({
-      name: `其他 ${heatTail.length} 產業`,
+      name: "其他",
       share: (articles / heatTotal) * 100,
       tip: `其他 ${heatTail.length} 個產業・${articles} 篇報導・${tailEvents} 件事件`,
       tone: 14,

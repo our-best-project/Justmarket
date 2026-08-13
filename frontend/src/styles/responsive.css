@@ -13,8 +13,7 @@
   .hero { grid-template-columns: 1fr; }
   .hero__inner { max-width: none; }
   .hero__facts { width: auto; }
-  /* 卡片改成撐滿，欄數就交給寬度決定（窄到放不下三欄自動掉成兩欄） */
-  .heat-keys { grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)); gap: 3px 10px; }
+  .heat-keys { gap: 3px 10px; }
   /* 窄畫面沒有左右餘裕：tooltip 不再貼著滑過的那一段，改固定落在整塊下方 */
   .hero__heat { position: relative; }
   .hero__heat [data-tip] { position: static; }

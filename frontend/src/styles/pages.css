@@ -85,7 +85,9 @@
 .heat-bar { display: flex; gap: 2px; height: 8px; margin-top: 8px; animation: heat-sweep .8s ease-out backwards; }
 @keyframes heat-sweep { from { clip-path: inset(0 100% 0 0); } }
 .heat-seg { min-width: 3px; border-radius: 3px; background: color-mix(in srgb, var(--ember) var(--tone), #223142); transition: filter .2s ease; }
-.heat-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px 12px; margin-top: 8px; list-style: none; }
+/* contain: inline-size 讓標籤列不參與卡片的內在寬度計算——卡寬永遠由統計列決定，
+   不會因為某天產業名變長就被撐開；標籤放不下時自己換行 */
+.heat-keys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 13px; margin-top: 8px; list-style: none; contain: inline-size; }
 .heat-key { display: flex; align-items: baseline; gap: 6px; font-size: 11px; line-height: 1.45; color: var(--ink-mute); }
 .heat-key i { width: 7px; height: 7px; border-radius: 2px; background: color-mix(in srgb, var(--ember) var(--tone), #223142); }
 .heat-key b { font-family: "DM Mono", monospace; font-weight: 500; letter-spacing: .02em; color: var(--ink-soft); }
