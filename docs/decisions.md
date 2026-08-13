@@ -131,3 +131,27 @@ F1 掉到對照組以下。評測方法與數據見 `backend/clustering/REPORT.m
 
 **什麼會推翻它**　沒有。這條是流程紀律。那些暫關的 lint 規則各自開一次變更修完後，
 逐條從 ignore 清單刪掉。
+
+---
+
+## 11. `.gcloudignore` 的目錄規則一律錨定根目錄
+
+**決定**　`.gcloudignore` 裡凡是要排除特定目錄的規則，一律寫成 `/db/`、`/tests/`、
+`/scripts/` 這種開頭帶斜線的形式，不寫裸名。要跨層級排除時（例如 `**/__pycache__`）
+必須明確寫出 `**/`，讓意圖留在字面上。
+
+**為什麼**　`.gcloudignore` 用的是 **gitignore 語法**，`.dockerignore` 不是。
+gitignore 下沒有斜線的 pattern 會比對**任何深度**——一行 `db/` 連 `backend/db/` 一起殺。
+2026-08 重構後首次部署就是這樣失敗的：`backend/db/` 在上傳階段消失，
+Cloud Build 照樣建成功（Dockerfile 的 `COPY backend ./backend` 不會因為少一個子目錄而報錯），
+容器啟動時才 `ModuleNotFoundError: No module named 'backend.db'`。
+
+真正的代價不是修這一行，是**排查路徑很長**：Cloud Run 只回報
+「container failed to start and listen on PORT」，看起來像 port 設定問題；
+而本機 `docker build` 完全正常，因為 `.dockerignore` 的裸名只比對根目錄。
+兩邊過濾出的檔案不同，卻沒有任何一步會警告你。
+
+**什麼會推翻它**　gcloud 改用與 Docker 一致的比對語意（目前沒有這個跡象），
+或改成不再依賴 ignore 檔——例如 Dockerfile 明列要 COPY 的子目錄，
+讓遺漏在 build 階段就報錯，而不是留到 runtime。後者是更根本的解法，
+但會讓 Dockerfile 每加一個模組就要改一次。

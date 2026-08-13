@@ -103,6 +103,76 @@ build context 是 repo 根目錄，`.gcloudignore` 控制上傳範圍（也負�
 
 ⚠️ 只部署 **API**。Prefect 排程、爬蟲、embedding、LLM、評分都還在本機／GCE 跑。
 
+### 兩個 ignore 檔不是同一套語法
+
+重構後首次部署連續失敗兩次，兩次都出在這裡。**改任何一個 ignore 檔之前先讀這段。**
+
+| 檔案 | 誰在用 | 語法 | 一行 `db/` 會擋掉 |
+|---|---|---|---|
+| `.dockerignore` | 本機 `docker build` | Docker patternmatcher | **只有根目錄的 `db/`** |
+| `.gcloudignore` | `gcloud builds submit` | **gitignore 語法** | **任何層級的 `db/`**，含 `backend/db/` |
+
+gitignore 的規則是：pattern 裡沒有斜線時比對**任何深度**。所以要限定根目錄
+就得寫 `/db/`。目前 `.gcloudignore` 的目錄規則都已加上開頭斜線，見
+[`decisions.md` #11](decisions.md)。
+
+後果是「**本機建得起來、Cloud Build 建不起來**」——因為兩邊過濾出的檔案根本不同。
+
+實際踩過的兩次：
+
+**1. `COPY failed: stat README.md: file does not exist`**
+
+`.gcloudignore` 有一條 `*.md`，把 README 一起濾掉了。但 Dockerfile 第一段就是
+`COPY pyproject.toml uv.lock README.md ./`——`uv sync` 建置本專案時，
+hatchling 會依 `pyproject.toml` 的 `readme` 欄位去讀它，缺檔直接失敗。
+→ 修法：`.gcloudignore` 補一行 `!README.md`。
+
+**2. `ModuleNotFoundError: No module named 'backend.db'`**
+
+`.gcloudignore` 有一條 `db/`（原意是擋根目錄那個放 DDL 的 `db/`），
+gitignore 語法下連 `backend/db/` 一起殺掉，檔案在**上傳階段**就消失，
+Docker 根本沒機會 COPY。容器啟動時 import 失敗 exit(1)。
+→ 修法：改成 `/db/`。
+
+第 2 個症狀在 Cloud Run 顯示為：
+
+```
+The user-provided container failed to start and listen on the port
+defined provided by the PORT=8000 environment variable
+```
+
+**這行訊息會誤導。** 它是所有啟動失敗的通用訊息，跟 port 設定通常無關——
+容器在 import 階段就崩了，根本沒活到去聽 port。**不要去調 port，先看 log。**
+
+### 部署失敗時的診斷順序
+
+```powershell
+# 1. Cloud Build 失敗（映像檔沒建出來）→ 看建置 log 的最後幾行
+gcloud builds list --limit=3
+gcloud builds log <BUILD_ID> | Select-Object -Last 30
+
+# 2. Cloud Run 失敗（映像檔有了但容器起不來）→ 看該 revision 的執行 log
+gcloud logging read "resource.type=cloud_run_revision AND resource.labels.revision_name=<REVISION>" `
+  --limit=50 --format="value(textPayload)" --project=eventsignal-nash-2026
+```
+
+失敗的 revision **不會**接管流量，舊版持續服務中，可以安心慢慢查。
+
+### 改 ignore 檔後的本機快速驗證
+
+不用等三分鐘的 Cloud Build：
+
+```powershell
+docker build --target api -t justmarket-api:test .
+docker run --rm justmarket-api:test ls /opt/justmarket/backend
+```
+
+⚠️ 但這只驗得到 `.dockerignore`。`.gcloudignore` 的效果只有真的 submit 才看得出來——
+`gcloud builds submit` 開頭那行 `Creating temporary archive of N file(s)` 的 **N**
+是最快的檢查點：檔案數突然變少就是有規則誤傷。
+
+> 實測：`README.md` 修好後 160 → 165 檔，`/db/` 修好後 165 → 207 檔。
+
 ## 前端部署（GitHub Pages）
 
 `.github/workflows/pages.yml` 在 push 到 main 時建置 `frontend/` 並發佈。
@@ -148,6 +218,9 @@ content-type 是 text/html），前端會誤判成資料格式錯，極難察覺
 | 事件不更新、pending 一直漲 | `uv run python -m backend health`，看是哪一段沒推進 status |
 | 「今日事件」在半夜查錯日 | 連線的 timezone 設定（見 [`api.md`](api.md)） |
 | 前端整頁錯誤 | 那是預期行為：取不到資料就報錯，不退回假資料。先確認 API 與 CORS |
+| 前端說被 CORS 擋 | 先確認 Cloud Run 跑的是不是最新映像檔。`DEFAULT_ORIGINS` 改了但沒重新部署，線上還是舊的 |
+| Cloud Build 失敗在某個 `COPY` | `.gcloudignore` 濾掉了那個檔。注意它是 **gitignore 語法**，裸寫的規則會比對任何層級 |
+| Cloud Run 說「failed to start and listen on PORT」 | **通常不是 port 的問題。** 去看 revision 的執行 log，多半是 import 失敗 |
 
 ## 維運腳本
 
