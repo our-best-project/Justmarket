@@ -35,6 +35,11 @@ const SCORE_LOGIC = "以事件預期方向為基準，法人買賣超最高影�
 // 每個盤後會用最新價量與法人資料重算，直到第 5 個交易日定案（verified）。
 const PENDING_NOTE = "此分數尚未定案：事件後的股價報酬與法人動向仍在累積，每個盤後會重新計算，約第 5 個交易日後定案。";
 const NEUTRAL_EVENT_LOGIC = "事件本身沒有明確的利多或利空方向，因此不計算市場反應一致性分數；股價、成交量與三大法人資料仍會如實呈現，供你查看事件發生後的市場變化。";
+// 無分數的另外兩種「永遠不會有」：誠實標示，不掛著「觀察中」誤導使用者一直等
+const NO_TICKER_LOGIC = "此事件未關聯特定個股（總經、政策或產業層級的消息），沒有可對應的股價與籌碼資料，因此不適用市場驗證分數。";
+const NON_COMMON_STOCK_LOGIC = "此事件的主要標的不是上市櫃普通股（例如 ETF 或興櫃股票），資料來源不提供其三大法人買賣超，因此無法計算市場驗證分數。";
+// 與後端 TICKER_RE 同義：上市櫃普通股＝四碼、首碼非 0
+const COMMON_STOCK_RE = /^[1-9]\d{3}$/;
 
 export const SOURCE_TYPE_LABELS = {
   official: "官方",
@@ -70,15 +75,25 @@ export function renderStars(stars: number): string {
 
 export function renderScore(event: MarketEvent): string {
   if (event.market_validation == null) {
-    if (event.expected_direction === "中性") {
-      return `<div class="score score--watch">
+    const watch = (label: string, aria: string, logic: string): string =>
+      `<div class="score score--watch">
         <span class="label">市場反應</span>
-        <span class="score__value"><b>中性事件</b>
-          <span class="score__help" tabindex="0" aria-label="查看中性事件說明">?
-            <span class="score__tooltip" role="tooltip">${NEUTRAL_EVENT_LOGIC}</span>
+        <span class="score__value"><b>${label}</b>
+          <span class="score__help" tabindex="0" aria-label="${aria}">?
+            <span class="score__tooltip" role="tooltip">${logic}</span>
           </span>
         </span>
       </div>`;
+    if (event.expected_direction === "中性") {
+      return watch("中性事件", "查看中性事件說明", NEUTRAL_EVENT_LOGIC);
+    }
+    // 「觀察中」只留給真的在等資料的；永遠等不到的兩種要誠實講
+    const first = getFirstTicker(event)?.ticker;
+    if (!first) {
+      return watch("不適用", "查看為何不適用", NO_TICKER_LOGIC);
+    }
+    if (!COMMON_STOCK_RE.test(first)) {
+      return watch("無籌碼資料", "查看為何無籌碼資料", NON_COMMON_STOCK_LOGIC);
     }
     return `<div class="score score--watch"><span class="label">市場反應</span><b>觀察中</b></div>`;
   }

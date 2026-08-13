@@ -40,6 +40,43 @@ describe("event card market validation score", () => {
     expect(html).toContain("沒有明確的利多或利空方向");
     expect(html).toContain("三大法人資料仍會如實呈現");
   });
+
+  it("無個股事件顯示「不適用」而非永遠的觀察中", () => {
+    const html = renderScore({
+      ...eventsFixture.events[0],
+      market_validation: null,
+      expected_direction: "利多",
+      related_tickers: [],
+    });
+
+    expect(html).toContain("不適用");
+    expect(html).not.toContain("觀察中");
+    expect(html).toContain("未關聯特定個股");
+  });
+
+  it("ETF／非普通股主角顯示「無籌碼資料」", () => {
+    const html = renderScore({
+      ...eventsFixture.events[0],
+      market_validation: null,
+      expected_direction: "利多",
+      related_tickers: [{ ticker: "0050", name: "元大台灣50" }],
+    });
+
+    expect(html).toContain("無籌碼資料");
+    expect(html).not.toContain("觀察中");
+    expect(html).toContain("三大法人買賣超");
+  });
+
+  it("普通股且資料在路上的維持「觀察中」", () => {
+    const html = renderScore({
+      ...eventsFixture.events[0],
+      market_validation: null,
+      expected_direction: "利多",
+      related_tickers: [{ ticker: "2330", name: "台積電" }],
+    });
+
+    expect(html).toContain("觀察中");
+  });
 });
 
 describe("renderStars（重要性星等）", () => {
