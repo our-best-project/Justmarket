@@ -38,6 +38,7 @@ const NEUTRAL_EVENT_LOGIC = "事件本身沒有明確的利多或利空方向，
 // 無分數的另外兩種「永遠不會有」：誠實標示，不掛著「觀察中」誤導使用者一直等
 const NO_TICKER_LOGIC = "此事件未關聯特定個股（總經、政策或產業層級的消息），沒有可對應的股價與籌碼資料，因此不適用市場驗證分數。";
 const NON_COMMON_STOCK_LOGIC = "此事件的主要標的不是上市櫃普通股（例如 ETF 或興櫃股票），資料來源不提供其三大法人買賣超，因此無法計算市場驗證分數。";
+const UNSCORED_LOGIC = "此事件的方向判讀信心不足（多為傳聞或未經證實的消息），不以其方向計算市場反應一致性分數；股價、成交量與三大法人資料仍會如實呈現，供你自行判讀。";
 // 與後端 TICKER_RE 同義：上市櫃普通股＝四碼、首碼非 0
 const COMMON_STOCK_RE = /^[1-9]\d{3}$/;
 
@@ -94,6 +95,11 @@ export function renderScore(event: MarketEvent): string {
     }
     if (!COMMON_STOCK_RE.test(first)) {
       return watch("無籌碼資料", "查看為何無籌碼資料", NON_COMMON_STOCK_LOGIC);
+    }
+    // 已定案（verified）卻沒有分數＝後端刻意不評分（方向信心 low 的傳聞類，
+    // 見 market_validation 設計）——資料不會再來了，不能繼續掛「觀察中」騙人等
+    if (event.verify_state === "verified") {
+      return watch("不評分", "查看為何不評分", UNSCORED_LOGIC);
     }
     return `<div class="score score--watch"><span class="label">市場反應</span><b>觀察中</b></div>`;
   }

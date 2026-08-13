@@ -72,10 +72,25 @@ describe("event card market validation score", () => {
       ...eventsFixture.events[0],
       market_validation: null,
       expected_direction: "利多",
+      verify_state: "observing",
       related_tickers: [{ ticker: "2330", name: "台積電" }],
     });
 
     expect(html).toContain("觀察中");
+  });
+
+  it("已定案但刻意不評分的（方向信心 low 傳聞類）顯示「不評分」", () => {
+    const html = renderScore({
+      ...eventsFixture.events[0],
+      market_validation: null,
+      expected_direction: "利多",
+      verify_state: "verified",
+      related_tickers: [{ ticker: "2330", name: "台積電" }],
+    });
+
+    expect(html).toContain("不評分");
+    expect(html).not.toContain("觀察中");
+    expect(html).toContain("方向判讀信心不足");
   });
 });
 
