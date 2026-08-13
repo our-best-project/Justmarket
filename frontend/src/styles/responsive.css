@@ -12,7 +12,15 @@
   .header-search input { width: 96px; }
   .hero { grid-template-columns: 1fr; }
   .hero__inner { max-width: none; }
-  .hero__heat { margin-top: 26px; }
+  .heat-keys { gap: 4px 10px; }
+  /* 窄畫面沒有左右餘裕：tooltip 不再貼著滑過的那一段，改固定落在整塊下方 */
+  .hero__heat { position: relative; }
+  .hero__heat [data-tip] { position: static; }
+  .hero__heat [data-tip]:hover::after,
+  .hero__heat .heat-seg[data-tip]:hover::after {
+    top: calc(100% + 8px); bottom: auto; left: 0; right: auto; transform: none;
+    max-width: 100%; white-space: normal;
+  }
   .clusters { grid-template-columns: 1fr; }
   .row { grid-template-columns: 84px 1fr; }
   .row__thumb { width: 84px; height: 60px; }
@@ -34,4 +42,5 @@
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .scene__far, .scene__near { transition: none; }
+  .heat-bar { animation: none; }
 }

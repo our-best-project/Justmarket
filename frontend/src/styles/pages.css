@@ -44,12 +44,12 @@
 
 /* ---------- Hero(第一屏:slogan 在左,背景透出室內) ---------- */
 /* 第一屏留給 hero + 室內小人:內容卡從折線以下才開始,小人不被蓋住 */
-/* 內容自適應高度（不再撐滿 100vh）：左欄標語＋統計列，右欄產業熱度表，
-   align-items:end 讓熱度表底線與統計列切齊；下方區段直接跟上來 */
+/* 內容自適應高度（不再撐滿 100vh）：單欄標語＋事實卡（統計列＋產業佔比條），
+   右半留白讓場景透出來；下方區段直接跟上來 */
 .hero {
   width: var(--shell); margin: clamp(40px, 9vh, 96px) auto 0; position: relative;
-  display: grid; grid-template-columns: minmax(0, 560px) minmax(300px, 480px);
-  justify-content: space-between; align-items: end; column-gap: 28px;
+  display: grid; grid-template-columns: minmax(0, 560px);
+  justify-content: start; align-items: end;
 }
 .hero__inner { max-width: 560px; position: relative; }
 /* 場景亮部會吃掉文字——整塊文字區墊一層柔和暗暈，而不是逐字堆陰影 */
@@ -68,30 +68,43 @@
 }
 .hero__title .accent { color: var(--ember); }
 .hero__sub { max-width: 30em; color: var(--ink); font-size: clamp(15px, 1.25vw, 17px); line-height: 1.9; text-shadow: 0 1px 3px rgba(0,0,0,.6), 0 2px 16px rgba(0,0,0,.5); }
-.hero__stat { margin-top: 30px; display: inline-flex; align-items: center; gap: 16px; padding: 12px 20px; border-radius: 12px; font-family: "DM Mono", monospace; background: var(--panel-2); }
+.hero__facts { margin-top: 30px; padding: 12px 18px 13px; border-radius: 12px; background: var(--panel-2); }
+.hero__stat { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-family: "DM Mono", monospace; }
 .hero__stat b { font-size: 26px; color: var(--ember); font-weight: 500; }
 .hero__stat span { color: var(--ink-soft); font-size: 13px; letter-spacing: .08em; }
 .hero__stat .arrow { color: var(--ink-mute); }
 .hero__scroll { grid-column: 1 / -1; margin-top: clamp(26px, 4.5vh, 44px); display: inline-flex; align-items: center; gap: 10px; color: var(--ink-soft); font-family: "DM Mono", monospace; font-size: 12.5px; letter-spacing: .14em; text-shadow: 0 1px 3px rgba(0,0,0,.7), 0 1px 10px rgba(0,0,0,.7); }
 .hero__scroll::before { content: ""; width: 26px; height: 1px; background: currentColor; }
 
-/* 首屏產業熱度表：標題右側直欄，「本期哪些產業新聞最多」的橫條圖 */
-.hero__heat { padding: 16px 18px 13px; border-radius: 14px; }
-.hero__heat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: "DM Mono", monospace; font-size: 11.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-soft); }
-.hero__heat-head span { font-family: "Noto Sans TC", sans-serif; font-size: 11px; letter-spacing: .06em; text-transform: none; color: var(--ink-mute); }
-.heat-list { list-style: none; margin-top: 10px; }
-.heat-row { display: grid; grid-template-columns: 118px 1fr 96px; align-items: center; gap: 10px; padding: 4.5px 0; }
-.heat-row__name { font-size: 12.5px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.heat-row__bar { height: 8px; border-radius: 999px; background: rgba(200,216,228,.08); overflow: hidden; }
-.heat-row__bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--ember) 55%, transparent), var(--ember)); animation: heat-grow .7s ease-out backwards; }
-.heat-row:nth-child(2) .heat-row__bar i { animation-delay: .07s; }
-.heat-row:nth-child(3) .heat-row__bar i { animation-delay: .14s; }
-.heat-row:nth-child(4) .heat-row__bar i { animation-delay: .21s; }
-.heat-row:nth-child(5) .heat-row__bar i { animation-delay: .28s; }
-.heat-row:nth-child(6) .heat-row__bar i { animation-delay: .35s; }
-@keyframes heat-grow { from { width: 0; } }
-.heat-row__count { font-family: "DM Mono", monospace; font-size: 11px; letter-spacing: .04em; color: var(--ink-mute); text-align: right; white-space: nowrap; }
-.heat-row__count b { color: var(--ink-soft); font-weight: 500; }
+/* 首屏產業佔比條：一條 100% 堆疊橫條回答「本期報導集中在哪」。
+   單一色相由深到淺表示名次；段與段留 2px 縫，滑過任一段或標籤看細節。 */
+.hero__heat { margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--hair-soft); }
+.hero__heat-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: "DM Mono", monospace; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-mute); }
+.hero__heat-head span { font-family: "Noto Sans TC", sans-serif; font-size: 11px; letter-spacing: .06em; text-transform: none; }
+.heat-bar { display: flex; gap: 2px; height: 9px; margin-top: 9px; animation: heat-sweep .8s ease-out backwards; }
+@keyframes heat-sweep { from { clip-path: inset(0 100% 0 0); } }
+.heat-seg { min-width: 3px; border-radius: 3px; background: color-mix(in srgb, var(--ember) var(--tone), #223142); transition: filter .2s ease; }
+.heat-keys { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 14px; margin-top: 10px; list-style: none; }
+.heat-key { display: inline-flex; align-items: baseline; gap: 6px; font-size: 11.5px; color: var(--ink-mute); }
+.heat-key i { width: 7px; height: 7px; border-radius: 2px; background: color-mix(in srgb, var(--ember) var(--tone), #223142); }
+.heat-key b { font-family: "DM Mono", monospace; font-weight: 500; letter-spacing: .02em; color: var(--ink-soft); }
+.heat-key--lead { font-size: 12.5px; color: var(--ink); }
+/* 細節走滑過，不常駐佔位：篇數、事件數、佔比都在 tooltip 裡。
+   條的 tooltip 往上、標籤的往下，兩者才不會互相蓋住；首尾段改靠邊，不溢出卡片 */
+/* 高亮不用 filter：filter 會讓該段變成絕對定位的容器，窄畫面的固定 tooltip 槽會失效 */
+.hero__heat [data-tip] { position: relative; cursor: default; }
+.heat-seg:hover { box-shadow: inset 0 0 0 2px rgba(230,237,241,.8); }
+.heat-key:hover { color: var(--ink); }
+.heat-key:hover i { box-shadow: 0 0 0 2px rgba(230,237,241,.5); }
+.hero__heat [data-tip]:hover::after {
+  content: attr(data-tip); position: absolute; z-index: 20; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  padding: 6px 10px; border-radius: 8px; border: 1px solid var(--hair); background: rgba(12,17,23,.96);
+  font-family: "Noto Sans TC", sans-serif; font-size: 11.5px; letter-spacing: .02em; color: var(--ink); white-space: nowrap;
+  box-shadow: 0 12px 28px -14px rgba(0,0,0,.9);
+}
+.hero__heat .heat-seg[data-tip]:hover::after { top: auto; bottom: calc(100% + 8px); }
+.hero__heat [data-tip]:first-child:hover::after { left: 0; transform: none; }
+.hero__heat [data-tip]:last-child:hover::after { left: auto; right: 0; transform: none; }
 
 .up { color: var(--bull); } .down { color: var(--bear); }
 

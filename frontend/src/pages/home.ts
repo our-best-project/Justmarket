@@ -29,7 +29,7 @@ export function renderHome(options: HomeRenderOptions): string {
     ? `${Number(meta.edition_date.slice(5, 7))}/${Number(meta.edition_date.slice(8, 10))}`
     : "";
   const editionLabel = editionDay ? `${editionDay} 收盤版・` : "";
-  // 首屏左下產業熱度表：本期哪些產業新聞最多（以報導篇數計，事件數為輔）。
+  // 首屏產業佔比條：本期報導集中在哪些產業（以報導篇數計，事件數為輔）。
   // industries 是選填欄（舊資料源沒有）——彙整不出東西就整塊不渲染，不擺空圖。
   const industryHeat = new Map<string, { articles: number; events: number }>();
   for (const event of editionEvents) {
@@ -40,19 +40,44 @@ export function renderHome(options: HomeRenderOptions): string {
       industryHeat.set(industry, bucket);
     }
   }
-  const heatRows = [...industryHeat.entries()]
-    .sort((a, b) => b[1].articles - a[1].articles)
-    .slice(0, 6);
-  const heatMax = heatRows[0]?.[1].articles ?? 0;
-  const heatHtml = heatRows.length
-    ? `<div class="hero__heat acrylic" aria-label="產業新聞熱度">
-        <p class="hero__heat-head">INDUSTRY HEAT<span>${editionDay ? `${editionDay} ` : ""}產業新聞熱度・以報導篇數計</span></p>
-        <ul class="heat-list">
-        ${heatRows.map(([industry, n]) => `
-          <li class="heat-row">
-            <span class="heat-row__name" title="${escapeHtml(industry)}">${escapeHtml(industry)}</span>
-            <span class="heat-row__bar"><i style="width:${Math.max(Math.round((n.articles / heatMax) * 100), 4)}%"></i></span>
-            <span class="heat-row__count"><b>${n.articles}</b> 篇・${n.events} 件</span>
+  const heatEntries = [...industryHeat.entries()].sort(
+    (a, b) => b[1].articles - a[1].articles,
+  );
+  const heatTotal = heatEntries.reduce((sum, [, n]) => sum + n.articles, 0);
+  const heatTail = heatEntries.slice(6);
+  // 佔比條：讀者要看的是「本期報導集中在哪」，不是無分母的絕對篇數。
+  // 前 6 名各佔一段，第 7 名以後併成「其他」，整條加起來剛好是 100%。
+  const heatSlices = heatEntries.slice(0, 6).map(([industry, n], index) => ({
+    name: industry,
+    share: (n.articles / heatTotal) * 100,
+    tip: `${industry}・${n.articles} 篇報導・${n.events} 件事件`,
+    tone: 100 - index * 15,
+  }));
+  if (heatTail.length > 0) {
+    const articles = heatTail.reduce((sum, [, n]) => sum + n.articles, 0);
+    const tailEvents = heatTail.reduce((sum, [, n]) => sum + n.events, 0);
+    heatSlices.push({
+      name: `其他 ${heatTail.length} 產業`,
+      share: (articles / heatTotal) * 100,
+      tip: `其他 ${heatTail.length} 個產業・${articles} 篇報導・${tailEvents} 件事件`,
+      tone: 14,
+    });
+  }
+  const formatShare = (share: number) =>
+    `${share >= 10 ? Math.round(share) : share.toFixed(1)}%`;
+  const heatSummary = heatSlices
+    .map((slice) => `${slice.name} ${formatShare(slice.share)}`)
+    .join("、");
+  const heatHtml = heatSlices.length
+    ? `<div class="hero__heat">
+        <p class="hero__heat-head">INDUSTRY HEAT<span>${editionDay ? `${editionDay} ` : ""}產業新聞熱度</span></p>
+        <div class="heat-bar" role="img" aria-label="產業新聞熱度：${escapeHtml(heatSummary)}">
+        ${heatSlices.map((slice) => `<i class="heat-seg" style="width:${slice.share.toFixed(2)}%;--tone:${slice.tone}%" data-tip="${escapeHtml(slice.tip)}・佔 ${formatShare(slice.share)}"></i>`).join("")}
+        </div>
+        <ul class="heat-keys">
+        ${heatSlices.map((slice, index) => `
+          <li class="heat-key${index < 3 ? " heat-key--lead" : ""}" data-tip="${escapeHtml(slice.tip)}">
+            <i style="--tone:${slice.tone}%"></i>${escapeHtml(slice.name)}<b>${formatShare(slice.share)}</b>
           </li>`).join("")}
         </ul>
       </div>`
@@ -63,9 +88,11 @@ export function renderHome(options: HomeRenderOptions): string {
         <p class="hero__eyebrow">WHY JUSTMARKET <em>From scattered headlines to verifiable market events.</em></p>
         <h1 class="hero__title">把分散新聞，<span class="accent">收斂</span>成<br>可驗證的市場事件。</h1>
         <p class="hero__sub">整併多來源、還原事件脈絡，再用已發生的價格與籌碼資料，確認市場是否真的反應。</p>
-        <div class="hero__stat acrylic"><span><b>${meta.total_sources || 0}</b> 篇報導</span><span class="arrow">→</span><span><b>${meta.total_events || events.length}</b> 個可驗證事件</span><span>更新 ${escapeHtml(formatTime(meta.as_of))}</span></div>
+        <div class="hero__facts acrylic">
+          <div class="hero__stat"><span><b>${meta.total_sources || 0}</b> 篇報導</span><span class="arrow">→</span><span><b>${meta.total_events || events.length}</b> 個可驗證事件</span><span>更新 ${escapeHtml(formatTime(meta.as_of))}</span></div>
+          ${heatHtml}
+        </div>
       </div>
-      ${heatHtml}
       <div class="hero__scroll">往下捲，看${editionDay ? `${editionDay} 收盤` : "最新"}事件</div>
     </section>
     <section class="section" id="curated">
