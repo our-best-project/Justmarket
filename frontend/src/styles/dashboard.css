@@ -394,6 +394,8 @@ body.is-board {
   box-shadow: 0 0 18px currentColor;
 }
 
+/* 字卡預設隱藏：亞洲節點地理上擠在一起，全部常駐會疊成一團。
+   hover／鍵盤 focus／選取中才顯示；節點本身的 aria-label 仍完整，讀屏不受影響。 */
 .world-node__label {
   position: absolute;
   left: 15px;
@@ -408,6 +410,10 @@ body.is-board {
   font-family: "DM Mono", monospace;
   font-size: 9px;
   white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .15s ease, visibility .15s ease;
 }
 
 .world-node__label b {
@@ -423,9 +429,18 @@ body.is-board {
   outline: 4px solid rgba(232, 239, 235, .1);
 }
 
+/* 顯示字卡的節點要浮到其他節點之上，字卡才不會被鄰近節點的圓點壓住 */
+.world-node:hover,
+.world-node:focus-visible,
+.world-node[aria-pressed="true"] {
+  z-index: 3;
+}
+
 .world-node[aria-pressed="true"] .world-node__label,
 .world-node:hover .world-node__label,
 .world-node:focus-visible .world-node__label {
+  opacity: 1;
+  visibility: visible;
   border-color: currentColor;
   background: rgba(5, 8, 9, .96);
 }
@@ -1275,6 +1290,7 @@ body.is-board {
 
 @media (prefers-reduced-motion: reduce) {
   .world-node,
+  .world-node__label,
   .market-rank {
     transition: none;
   }
