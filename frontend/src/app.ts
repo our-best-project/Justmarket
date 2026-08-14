@@ -100,6 +100,7 @@ export async function createJustmarketApp(
   const searchInput = searchForm?.querySelector<HTMLInputElement>("input[type=search]");
   let searchToken = 0;   // 競態保護：舊查詢的回應不得覆蓋新查詢的結果
   let detailToken = 0;   // 同上，用於詳情頁的非同步補抓
+  let watchlistToken = 0; // 同上，用於自選頁的非同步補抓
   const preventSearch = (event: SubmitEvent): void => {
     event.preventDefault();
     const q = searchInput?.value.trim() ?? "";
@@ -163,8 +164,30 @@ export async function createJustmarketApp(
       };
       renderAllPage(catalog.events, "all");
     } else if (route.name === "watchlist") {
-      view.innerHTML = renderWatchlist({ events: catalog.events, watchlist });
-      disposePage = mountWatchlist(view);
+      // catalog 只有 bootstrap 那批（預設 12 筆）——從搜尋、其他日期或分享連結
+      // 收藏的事件不在裡面，只畫 catalog 會讓收藏「消失」。先畫手上有的，
+      // 缺的向後端補抓（同詳情頁的補抓模式）。抓不到的不從自選移除：
+      // 可能只是暫時的網路錯誤，砍收藏是不可逆的。
+      const paintWatchlist = (events: readonly MarketEvent[]): void => {
+        view.innerHTML = renderWatchlist({ events, watchlist });
+        disposePage = mountWatchlist(view);
+      };
+      paintWatchlist(catalog.events);
+      const known = new Set(catalog.events.map((event) => event.event_id));
+      const missing = watchlist.list().filter((id) => !known.has(id));
+      if (missing.length > 0) {
+        const token = ++watchlistToken;
+        void Promise.all(missing.map((id) => eventSource.getEvent(id))).then((fetched) => {
+          const extras = fetched.filter((event): event is MarketEvent => Boolean(event));
+          if (extras.length === 0 || token !== watchlistToken
+              || parseRoute(location.hash).name !== "watchlist") {
+            return;
+          }
+          disposePage();
+          paintWatchlist([...catalog.events, ...extras]
+            .sort((left, right) => (right.date || "").localeCompare(left.date || "")));
+        });
+      }
     } else if (route.name === "method") {
       view.innerHTML = renderMethod();
       disposePage = mountMethod();
